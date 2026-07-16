@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: pharmaflow-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: pharmaflow
+      POSTGRES_PASSWORD: pharmaflow123
+      POSTGRES_DB: pharmaflow
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
