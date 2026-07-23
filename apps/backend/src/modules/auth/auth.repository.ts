@@ -7,15 +7,16 @@ export class AuthRepository {
     });
   }
 
- async create(data: {
-  fullName: string;
-  email: string;
-  phone: string;
-  password: string;
-}) {
-  return prisma.user.create({
-    data,
-  });
+  async create(data: {
+    fullName: string;
+    email: string;
+    phone: string;
+    password: string;
+  }) {
+    return prisma.user.create({
+      data,
+    });
+  }
 }
-}
+
 export const authRepository = new AuthRepository();
