@@ -1,4 +1,4 @@
-import { prisma } from "../../database/prisma";
+import { prisma } from "../../database/prisma.js";
 
 export class AuthRepository {
   async findByEmail(email: string) {
@@ -7,16 +7,15 @@ export class AuthRepository {
     });
   }
 
-  async create(data: {
-    fullName: string;
-    email: string;
-    phone?: string;
-    passwordHash: string;
-  }) {
-    return prisma.user.create({
-      data,
-    });
-  }
+ async create(data: {
+  fullName: string;
+  email: string;
+  phone: string;
+  password: string;
+}) {
+  return prisma.user.create({
+    data,
+  });
 }
-
+}
 export const authRepository = new AuthRepository();
