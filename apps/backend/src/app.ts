@@ -2,8 +2,12 @@ import express from "express";
 import cors from "cors";
 
 import authRoutes from "./modules/auth/auth.routes.js";
+import medicineRoutes from "./modules/medicine/medicine.routes.js";
 
-import { authenticate, type AuthRequest } from "./shared/middleware/auth.middleware.js";
+import {
+  authenticate,
+  type AuthRequest,
+} from "./shared/middleware/auth.middleware.js";
 import { authorize } from "./shared/middleware/authorize.middleware.js";
 import { errorHandler } from "./shared/middleware/error-handler.js";
 
@@ -32,6 +36,7 @@ app.get("/health", (_req, res) => {
 // ==============================
 
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/medicines", medicineRoutes);
 
 // ==============================
 // Protected Route

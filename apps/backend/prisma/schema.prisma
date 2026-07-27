@@ -19,6 +19,21 @@ model User {
   updatedAt DateTime @updatedAt
 }
 
+model Medicine {
+  id          String           @id @default(cuid())
+  name        String
+  genericName String?
+  brand       String?
+  batchNo     String           @unique
+  expiryDate  DateTime
+  purchasePrice Decimal        @db.Decimal(10,2)
+  sellingPrice  Decimal        @db.Decimal(10,2)
+  stock       Int              @default(0)
+  unit        String
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
 enum Role {
   ADMIN
   PHARMACIST
