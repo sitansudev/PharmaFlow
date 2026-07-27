@@ -7,6 +7,8 @@ export function errorHandler(
   res: Response,
   _next: NextFunction
 ) {
+  console.error(err);
+
   if (err instanceof AppError) {
     return res.status(err.statusCode).json({
       success: false,
@@ -14,10 +16,8 @@ export function errorHandler(
     });
   }
 
-  console.error(err);
-
   return res.status(500).json({
     success: false,
-    message: "Internal Server Error",
+    message: err instanceof Error ? err.message : "Internal Server Error",
   });
 }
