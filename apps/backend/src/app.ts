@@ -3,6 +3,9 @@ import cors from "cors";
 
 import authRoutes from "./modules/auth/auth.routes.js";
 import medicineRoutes from "./modules/medicine/medicine.routes.js";
+import categoryRoutes from "./modules/category/category.routes.js";
+import supplierRoutes from "./modules/supplier/supplier.routes.js";
+import purchaseRoutes from "./modules/purchase/purchase.routes.js";
 
 import {
   authenticate,
@@ -37,7 +40,9 @@ app.get("/health", (_req, res) => {
 
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/medicines", medicineRoutes);
-
+app.use("/api/v1/categories", categoryRoutes);
+app.use("/api/v1/suppliers", supplierRoutes);
+app.use("/api/v1/purchases", purchaseRoutes);
 // ==============================
 // Protected Route
 // ==============================

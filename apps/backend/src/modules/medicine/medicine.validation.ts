@@ -24,7 +24,7 @@ export const createMedicineSchema = z.object({
   sellingPrice: z.coerce.number().positive(),
 
   stock: z.coerce.number().int().min(0),
-
+  categoryId: z.string().cuid().optional(),
   unit: z
     .string()
     .min(1, "Unit is required"),

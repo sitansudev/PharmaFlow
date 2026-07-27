@@ -7,35 +7,100 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  ADMIN
+  PHARMACIST
+  CASHIER
+}
+
 model User {
-  id        String   @id @default(cuid())
-  fullName  String
-  email     String   @unique
-  phone     String   @unique
-  password  String
-  role      Role     @default(PHARMACIST)
-  isActive  Boolean  @default(true)
+  id       String  @id @default(cuid())
+  fullName String
+  email    String  @unique
+  phone    String  @unique
+  password String
+  role     Role    @default(PHARMACIST)
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+
+  medicines Medicine[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Medicine {
-  id          String           @id @default(cuid())
-  name        String
-  genericName String?
-  brand       String?
-  batchNo     String           @unique
-  expiryDate  DateTime
-  purchasePrice Decimal        @db.Decimal(10,2)
-  sellingPrice  Decimal        @db.Decimal(10,2)
-  stock       Int              @default(0)
-  unit        String
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id            String   @id @default(cuid())
+  name          String
+  genericName   String?
+  brand         String?
+  batchNo       String   @unique
+  expiryDate    DateTime
+  purchasePrice Decimal  @db.Decimal(10, 2)
+  sellingPrice  Decimal  @db.Decimal(10, 2)
+  stock         Int      @default(0)
+  unit          String
+
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  purchaseItems PurchaseItem[]
 }
 
-enum Role {
-  ADMIN
-  PHARMACIST
-  CASHIER
+model Supplier {
+  id          String  @id @default(cuid())
+  name        String
+  email       String? @unique
+  phone       String  @unique
+  address     String?
+  companyName String?
+  isActive    Boolean @default(true)
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  purchases Purchase[]
+}
+
+model Purchase {
+  id           String   @id @default(cuid())
+  invoiceNo    String   @unique
+  purchaseDate DateTime @default(now())
+
+  supplierId String
+  supplier   Supplier @relation(fields: [supplierId], references: [id])
+
+  totalAmount Decimal @db.Decimal(10, 2)
+
+  items PurchaseItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PurchaseItem {
+  id String @id @default(cuid())
+
+  purchaseId String
+  purchase   Purchase @relation(fields: [purchaseId], references: [id])
+
+  medicineId String
+  medicine   Medicine @relation(fields: [medicineId], references: [id])
+
+  quantity Int
+
+  purchasePrice Decimal @db.Decimal(10, 2)
+
+  subtotal Decimal @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
 }

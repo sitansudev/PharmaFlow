@@ -19,16 +19,23 @@ export class MedicineService {
     }
 
     return medicineRepository.create({
-      name: data.name,
-      genericName: data.genericName,
-      brand: data.brand,
-      batchNo: data.batchNo,
-      expiryDate: data.expiryDate,
-      purchasePrice: data.purchasePrice,
-      sellingPrice: data.sellingPrice,
-      stock: data.stock,
-      unit: data.unit,
-    });
+  name: data.name,
+  genericName: data.genericName,
+  brand: data.brand,
+  batchNo: data.batchNo,
+  expiryDate: data.expiryDate,
+  purchasePrice: data.purchasePrice,
+  sellingPrice: data.sellingPrice,
+  stock: data.stock,
+  unit: data.unit,
+  category: data.categoryId
+    ? {
+        connect: {
+          id: data.categoryId,
+        },
+      }
+    : undefined,
+});
   }
 
   async findAll(): Promise<Medicine[]> {

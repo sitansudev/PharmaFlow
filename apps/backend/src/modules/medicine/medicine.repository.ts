@@ -8,21 +8,27 @@ export class MedicineRepository {
     });
   }
 
-  async findAll(): Promise<Medicine[]> {
-    return prisma.medicine.findMany({
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-  }
+  async findAll() {
+  return prisma.medicine.findMany({
+    include: {
+      category: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+}
 
-  async findById(id: string): Promise<Medicine | null> {
-    return prisma.medicine.findUnique({
-      where: {
-        id,
-      },
-    });
-  }
+  async findById(id: string) {
+  return prisma.medicine.findUnique({
+    where: {
+      id,
+    },
+    include: {
+      category: true,
+    },
+  });
+}
 
   async findByBatchNo(batchNo: string): Promise<Medicine | null> {
     return prisma.medicine.findUnique({
