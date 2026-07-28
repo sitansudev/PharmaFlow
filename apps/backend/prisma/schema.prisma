@@ -58,6 +58,7 @@ model Medicine {
   purchaseItems         PurchaseItem[]
   saleItems             SaleItem[]
   inventoryTransactions InventoryTransaction[]
+  
 }
 
 model Supplier {
@@ -219,4 +220,27 @@ model AuditLog {
   @@index([entityId])
   @@index([userId])
   @@index([createdAt])
+}
+enum InventoryTransactionType {
+  PURCHASE
+  SALE
+  ADJUSTMENT
+  RETURN
+  EXPIRED
+  DAMAGED
+}
+model InventoryTransaction {
+  id        String   @id @default(cuid())
+  quantity  Int
+  type      InventoryTransactionType
+  reference String?
+  note      String?
+
+  medicineId String
+  medicine   Medicine @relation(fields: [medicineId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([medicineId])
+  @@index([type])
 }

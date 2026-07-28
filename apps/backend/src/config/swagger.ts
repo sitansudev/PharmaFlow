@@ -1,21 +1,36 @@
 import swaggerUi from "swagger-ui-express";
-import type { Express } from "express";
+import swaggerJSDoc from "swagger-jsdoc";
 
-const swaggerDocument = {
-  openapi: "3.0.0",
-  info: {
-    title: "PharmaFlow API",
-    version: "1.0.0",
-    description: "Pharmacy Management System API",
-  },
-  servers: [
-    {
-      url: "http://localhost:5000/api/v1",
+const PORT = process.env.PORT || 5001;
+
+const options: swaggerJSDoc.Options = {
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "PharmaFlow API",
+      version: "1.0.0",
+      description: "Pharmacy Management System API",
     },
+    servers: [
+      {
+        url: `http://localhost:${PORT}/api`,
+      },
+    ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+        },
+      },
+    },
+  },
+  apis: [
+    "./src/modules/**/*.routes.ts",
+    "./src/routes/**/*.ts",
   ],
-  paths: {},
 };
 
-export function setupSwagger(app: Express) {
-  app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-}
+export const swaggerSpec = swaggerJSDoc(options);
+export { swaggerUi };
