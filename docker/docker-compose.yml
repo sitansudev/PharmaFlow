@@ -1,12 +1,13 @@
 services:
   postgres:
-    image: postgres:16
+    image: postgres:16-alpine
     container_name: pharmaflow-postgres
+
     restart: unless-stopped
 
     environment:
-      POSTGRES_USER: pharmaflow
-      POSTGRES_PASSWORD: pharmaflow123
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
       POSTGRES_DB: pharmaflow
 
     ports:
@@ -14,6 +15,12 @@ services:
 
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d pharmaflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:
