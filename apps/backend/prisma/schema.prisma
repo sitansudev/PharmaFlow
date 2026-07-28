@@ -22,8 +22,9 @@ model User {
   role     Role    @default(PHARMACIST)
   isActive Boolean @default(true)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  auditLogs AuditLog[]
 }
 
 model Category {
@@ -52,9 +53,11 @@ model Medicine {
   categoryId String?
   category   Category? @relation(fields: [categoryId], references: [id])
 
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  purchaseItems PurchaseItem[]
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  purchaseItems         PurchaseItem[]
+  saleItems             SaleItem[]
+  inventoryTransactions InventoryTransaction[]
 }
 
 model Supplier {
@@ -103,4 +106,117 @@ model PurchaseItem {
   subtotal Decimal @db.Decimal(10, 2)
 
   createdAt DateTime @default(now())
+}
+
+model Customer {
+  id      String  @id @default(cuid())
+  name    String
+  phone   String? @unique
+  email   String? @unique
+  address String?
+
+  sales Sale[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Sale {
+  id        String   @id @default(cuid())
+  invoiceNo String   @unique
+  saleDate  DateTime @default(now())
+
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id])
+
+  totalAmount Decimal @db.Decimal(10, 2)
+
+  items SaleItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SaleItem {
+  id String @id @default(cuid())
+
+  saleId String
+  sale   Sale   @relation(fields: [saleId], references: [id])
+
+  medicineId String
+  medicine   Medicine @relation(fields: [medicineId], references: [id])
+
+  quantity Int
+
+  sellingPrice Decimal @db.Decimal(10, 2)
+
+  subtotal Decimal @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+}
+
+model InventoryTransaction {
+  id         String   @id @default(cuid())
+  medicineId String
+  medicine   Medicine @relation(fields: [medicineId], references: [id])
+
+  type TransactionType
+
+  quantity Int
+
+  previousStock Int
+  newStock      Int
+
+  referenceId String?
+  notes       String?
+
+  createdAt DateTime @default(now())
+}
+
+enum TransactionType {
+  PURCHASE
+  SALE
+  ADJUSTMENT
+  RETURN
+  EXPIRED
+}
+
+model Notification {
+  id String @id @default(cuid())
+
+  title   String
+  message String
+
+  type NotificationType
+
+  isRead Boolean @default(false)
+
+  createdAt DateTime @default(now())
+}
+
+enum NotificationType {
+  LOW_STOCK
+  EXPIRED
+  EXPIRING
+  SYSTEM
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  entity    String
+  entityId  String
+  oldValue  Json?
+  newValue  Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([entity])
+  @@index([entityId])
+  @@index([userId])
+  @@index([createdAt])
 }

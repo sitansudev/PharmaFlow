@@ -5,6 +5,7 @@ import {
   createMedicineSchema,
   updateMedicineSchema,
 } from "./medicine.validation.js";
+import { medicineQuerySchema } from "./medicine.query.js";
 
 export class MedicineController {
   async create(req: Request, res: Response, next: NextFunction) {
@@ -23,13 +24,16 @@ export class MedicineController {
     }
   }
 
-  async findAll(_req: Request, res: Response, next: NextFunction) {
+  async findAll(req: Request, res: Response, next: NextFunction) {
     try {
-      const medicines = await medicineService.findAll();
+      const query = medicineQuerySchema.parse(req.query);
 
-      res.json({
+      const result = await medicineService.findAll(query);
+
+      res.status(200).json({
         success: true,
-        data: medicines,
+        data: result.medicines,
+        meta: result.meta,
       });
     } catch (error) {
       next(error);
@@ -38,9 +42,8 @@ export class MedicineController {
 
   async findById(req: Request, res: Response, next: NextFunction) {
     try {
-      const medicine = await medicineService.findById(req.params.id as string);
-
-      res.json({
+        const medicine = await medicineService.findById(req.params.id as string);
+      res.status(200).json({
         success: true,
         data: medicine,
       });
@@ -54,11 +57,11 @@ export class MedicineController {
       const data = updateMedicineSchema.parse(req.body);
 
       const medicine = await medicineService.update(
-        req.params.id as string,
-        data
+      req.params.id as string,
+      data
       );
 
-      res.json({
+      res.status(200).json({
         success: true,
         message: "Medicine updated successfully",
         data: medicine,
@@ -72,7 +75,7 @@ export class MedicineController {
     try {
       await medicineService.delete(req.params.id as string);
 
-      res.json({
+      res.status(200).json({
         success: true,
         message: "Medicine deleted successfully",
       });

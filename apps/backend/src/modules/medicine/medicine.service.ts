@@ -1,5 +1,6 @@
-import { Medicine } from "@prisma/client";
 
+import { Medicine } from "@prisma/client";
+import type { MedicineQuery } from "./medicine.query.js";
 import { medicineRepository } from "./medicine.repository.js";
 import {
   CreateMedicineDTO,
@@ -38,9 +39,9 @@ export class MedicineService {
 });
   }
 
-  async findAll(): Promise<Medicine[]> {
-    return medicineRepository.findAll();
-  }
+  async findAll(query: MedicineQuery) {
+  return medicineRepository.findAll(query);
+}
 
   async findById(id: string): Promise<Medicine> {
     const medicine = await medicineRepository.findById(id);

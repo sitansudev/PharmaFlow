@@ -6,7 +6,10 @@ import medicineRoutes from "./modules/medicine/medicine.routes.js";
 import categoryRoutes from "./modules/category/category.routes.js";
 import supplierRoutes from "./modules/supplier/supplier.routes.js";
 import purchaseRoutes from "./modules/purchase/purchase.routes.js";
-
+import customerRoutes from "./modules/customer/customer.routes.js";
+import saleRoutes from "./modules/sale/sale.routes.js";
+import dashboardRoutes from "./modules/dashboard/dashboard.routes.js";
+import { setupSwagger } from "./config/swagger.js";
 import {
   authenticate,
   type AuthRequest,
@@ -43,6 +46,9 @@ app.use("/api/v1/medicines", medicineRoutes);
 app.use("/api/v1/categories", categoryRoutes);
 app.use("/api/v1/suppliers", supplierRoutes);
 app.use("/api/v1/purchases", purchaseRoutes);
+app.use("/api/v1/customers", customerRoutes);
+app.use("/api/v1/sales", saleRoutes);
+app.use("/api/v1/dashboard", dashboardRoutes);
 // ==============================
 // Protected Route
 // ==============================
