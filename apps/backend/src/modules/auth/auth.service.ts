@@ -27,37 +27,49 @@ export class AuthService {
       email: user.email,
     };
   }
-async login(data: LoginDTO) {
-  const user = await authRepository.findByEmail(data.email);
 
-  if (!user) {
-    throw new AppError(401, "Invalid email or password");
-  }
+  async login(data: LoginDTO) {
+    const user = await authRepository.findByEmail(data.email);
 
-  const isPasswordValid = await comparePassword(
-    data.password,
-    user.password
-  );
+    if (!user) {
+      throw new AppError(401, "Invalid email or password");
+    }
 
-  if (!isPasswordValid) {
-    throw new AppError(401, "Invalid email or password");
-  }
+    const isPasswordValid = await comparePassword(
+      data.password,
+      user.password
+    );
 
-  const token = generateToken({
-    id: user.id,
-    email: user.email,
-    role: user.role,
-  });
+    if (!isPasswordValid) {
+      throw new AppError(401, "Invalid email or password");
+    }
 
-  return {
-    user: {
+    const token = generateToken({
       id: user.id,
-      fullName: user.fullName,
       email: user.email,
       role: user.role,
-    },
-    token,
-  };
-}}
+    });
+
+    return {
+      user: {
+        id: user.id,
+        fullName: user.fullName,
+        email: user.email,
+        role: user.role,
+      },
+      token,
+    };
+  }
+
+  async getProfile(userId: string) {
+    const user = await authRepository.findById(userId);
+
+    if (!user) {
+      throw new AppError(404, "User not found");
+    }
+
+    return user;
+  }
+}
 
 export const authService = new AuthService();

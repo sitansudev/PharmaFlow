@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
+import type { AuthRequest } from "../../shared/middleware/auth.middleware.js";
 import { authService } from "./auth.service.js";
 
 export class AuthController {
@@ -24,6 +25,20 @@ export class AuthController {
         success: true,
         message: "Login successful",
         data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async me(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const user = await authService.getProfile(req.user!.id);
+
+      res.status(200).json({
+        success: true,
+        message: "Profile fetched successfully",
+        data: user,
       });
     } catch (error) {
       next(error);
