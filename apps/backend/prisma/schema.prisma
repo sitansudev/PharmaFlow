@@ -24,6 +24,7 @@ model User {
 
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+
   auditLogs AuditLog[]
 }
 
@@ -53,12 +54,12 @@ model Medicine {
   categoryId String?
   category   Category? @relation(fields: [categoryId], references: [id])
 
-  createdAt             DateTime               @default(now())
-  updatedAt             DateTime               @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   purchaseItems         PurchaseItem[]
   saleItems             SaleItem[]
   inventoryTransactions InventoryTransaction[]
-  
 }
 
 model Supplier {
@@ -70,8 +71,9 @@ model Supplier {
   companyName String?
   isActive    Boolean @default(true)
 
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   purchases Purchase[]
 }
 
@@ -103,8 +105,7 @@ model PurchaseItem {
   quantity Int
 
   purchasePrice Decimal @db.Decimal(10, 2)
-
-  subtotal Decimal @db.Decimal(10, 2)
+  subtotal      Decimal @db.Decimal(10, 2)
 
   createdAt DateTime @default(now())
 }
@@ -142,7 +143,7 @@ model SaleItem {
   id String @id @default(cuid())
 
   saleId String
-  sale   Sale   @relation(fields: [saleId], references: [id])
+  sale   Sale @relation(fields: [saleId], references: [id])
 
   medicineId String
   medicine   Medicine @relation(fields: [medicineId], references: [id])
@@ -150,14 +151,23 @@ model SaleItem {
   quantity Int
 
   sellingPrice Decimal @db.Decimal(10, 2)
-
-  subtotal Decimal @db.Decimal(10, 2)
+  subtotal     Decimal @db.Decimal(10, 2)
 
   createdAt DateTime @default(now())
 }
 
+enum TransactionType {
+  PURCHASE
+  SALE
+  ADJUSTMENT
+  RETURN
+  EXPIRED
+  DAMAGED
+}
+
 model InventoryTransaction {
-  id         String   @id @default(cuid())
+  id String @id @default(cuid())
+
   medicineId String
   medicine   Medicine @relation(fields: [medicineId], references: [id])
 
@@ -172,14 +182,16 @@ model InventoryTransaction {
   notes       String?
 
   createdAt DateTime @default(now())
+
+  @@index([medicineId])
+  @@index([type])
 }
 
-enum TransactionType {
-  PURCHASE
-  SALE
-  ADJUSTMENT
-  RETURN
+enum NotificationType {
+  LOW_STOCK
   EXPIRED
+  EXPIRING
+  SYSTEM
 }
 
 model Notification {
@@ -193,13 +205,6 @@ model Notification {
   isRead Boolean @default(false)
 
   createdAt DateTime @default(now())
-}
-
-enum NotificationType {
-  LOW_STOCK
-  EXPIRED
-  EXPIRING
-  SYSTEM
 }
 
 model AuditLog {
@@ -220,27 +225,4 @@ model AuditLog {
   @@index([entityId])
   @@index([userId])
   @@index([createdAt])
-}
-enum InventoryTransactionType {
-  PURCHASE
-  SALE
-  ADJUSTMENT
-  RETURN
-  EXPIRED
-  DAMAGED
-}
-model InventoryTransaction {
-  id        String   @id @default(cuid())
-  quantity  Int
-  type      InventoryTransactionType
-  reference String?
-  note      String?
-
-  medicineId String
-  medicine   Medicine @relation(fields: [medicineId], references: [id])
-
-  createdAt DateTime @default(now())
-
-  @@index([medicineId])
-  @@index([type])
 }
