@@ -12,8 +12,9 @@ export class DashboardController {
       const stats = await dashboardService.getStats();
 
       res.json({
-        success: true,
-        data: stats,
+      success: true,
+      message: "Dashboard fetched successfully",
+      data: stats,
       });
     } catch (error) {
       next(error);

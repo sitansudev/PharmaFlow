@@ -1,106 +1,169 @@
-import { Prisma } from "@prisma/client";
+import {
+  Prisma,
+  PaymentMethod,
+  PaymentStatus,
+} from "@prisma/client";
 
 import { saleRepository } from "./sale.repository.js";
 import { CreateSaleDTO } from "./sale.validation.js";
 
 import { AppError } from "../../shared/errors/app-error.js";
+
 type SaleWithDetails = Prisma.SaleGetPayload<{
   include: {
     customer: true;
     items: {
       include: {
-        medicine: true;
+        batch: {
+          include: {
+            medicine: true;
+          };
+        };
       };
     };
   };
 }>;
+
 export class SaleService {
   async create(
-  data: CreateSaleDTO
-): Promise<SaleWithDetails> {
-  return saleRepository.prisma.$transaction(async (tx) => {
-
-    // Check duplicate invoice number
-    const existingSale = await tx.sale.findUnique({
-      where: {
-        invoiceNo: data.invoiceNo,
-      },
-    });
-
-    if (existingSale) {
-      throw new AppError(409, "Invoice number already exists");
-    }
-
-    // Validate customer
-    if (data.customerId) {
-      const customer = await tx.customer.findUnique({
+    data: CreateSaleDTO
+  ): Promise<SaleWithDetails> {
+    return saleRepository.prisma.$transaction(async (tx) => {
+      const existingSale = await tx.sale.findUnique({
         where: {
-          id: data.customerId,
+          invoiceNo: data.invoiceNo,
         },
       });
 
-      if (!customer) {
-        throw new AppError(404, "Customer not found");
+      if (existingSale) {
+        throw new AppError(
+          409,
+          "Invoice already exists"
+        );
       }
-    }
 
-    let totalAmount = 0;
-
-    // Continue with medicine validation...
-
-      for (const item of data.items) {
-        const medicine = await tx.medicine.findUnique({
+      if (data.customerId) {
+        const customer = await tx.customer.findUnique({
           where: {
-            id: item.medicineId,
+            id: data.customerId,
           },
         });
 
-        if (!medicine) {
-          throw new AppError(404, "Medicine not found");
-        }
-
-        if (medicine.stock < item.quantity) {
+        if (!customer) {
           throw new AppError(
-            400,
-            `${medicine.name} has only ${medicine.stock} units in stock`
+            404,
+            "Customer not found"
+          );
+        }
+      }
+
+      let totalAmount = 0;
+
+      const validatedItems: {
+        batch: Prisma.MedicineBatchGetPayload<{
+          include: {
+            medicine: true;
+          };
+        }>;
+        subtotal: number;
+      }[] = [];
+            for (const item of data.items) {
+        const batch = await tx.medicineBatch.findUnique({
+          where: {
+            id: item.batchId,
+          },
+          include: {
+            medicine: true,
+          },
+        });
+
+        if (!batch) {
+          throw new AppError(
+            404,
+            "Medicine batch not found"
           );
         }
 
-        totalAmount += item.quantity * Number(medicine.sellingPrice);
+        if (batch.remainingQuantity < item.quantity) {
+          throw new AppError(
+            400,
+            `${batch.medicine.name} has only ${batch.remainingQuantity} units remaining`
+          );
+        }
+
+        const subtotal =
+          Number(batch.medicine.sellingPrice) *
+          item.quantity;
+
+        totalAmount += subtotal;
+
+        validatedItems.push({
+          batch,
+          subtotal,
+        });
       }
 
       const sale = await tx.sale.create({
         data: {
           invoiceNo: data.invoiceNo,
-          customerId: data.customerId,
+
+          customer: data.customerId
+            ? {
+                connect: {
+                  id: data.customerId,
+                },
+              }
+            : undefined,
+
           totalAmount,
+
+          paymentMethod: PaymentMethod.CASH,
+
+          paymentStatus: PaymentStatus.PAID,
+
+          paidAmount: totalAmount,
+
+          balanceAmount: 0,
+
+          discount: 0,
+
+          tax: 0,
         },
       });
+            for (let i = 0; i < data.items.length; i++) {
+        const item = data.items[i];
+        const { batch, subtotal } = validatedItems[i];
 
-      for (const item of data.items) {
-        const medicine = await tx.medicine.findUnique({
-  where: {
-    id: item.medicineId,
-  },
-});
+        await tx.saleItem.create({
+          data: {
+            saleId: sale.id,
 
-if (!medicine) {
-  throw new AppError(404, "Medicine not found");
-}
+            batchId: batch.id,
 
-await tx.saleItem.create({
-  data: {
-    saleId: sale.id,
-    medicineId: item.medicineId,
-    quantity: item.quantity,
-    sellingPrice: medicine.sellingPrice,
-    subtotal: Number(medicine.sellingPrice) * item.quantity,
-  },
-});
+            quantity: item.quantity,
+
+            costPrice: batch.purchasePrice,
+
+            sellingPrice: batch.medicine.sellingPrice,
+
+            subtotal,
+          },
+        });
+
+        await tx.medicineBatch.update({
+          where: {
+            id: batch.id,
+          },
+          data: {
+            remainingQuantity: {
+              decrement: item.quantity,
+            },
+          },
+        });
 
         await tx.medicine.update({
           where: {
-            id: item.medicineId,
+            id: batch.medicineId,
           },
           data: {
             stock: {
@@ -108,22 +171,92 @@ await tx.saleItem.create({
             },
           },
         });
+
+        await tx.inventoryTransaction.create({
+          data: {
+            medicineId: batch.medicineId,
+
+            batchId: batch.id,
+
+            type: "SALE",
+
+            quantity: item.quantity,
+
+            previousStock: batch.medicine.stock,
+
+            newStock:
+              batch.medicine.stock - item.quantity,
+
+            referenceId: sale.id,
+
+            notes: `Sale ${sale.invoiceNo}`,
+          },
+        });
       }
 
-     return tx.sale.findUniqueOrThrow({
-  where: {
-    id: sale.id,
-  },
-  include: {
-    customer: true,
-    items: {
-      include: {
-        medicine: true,
-      },
-    },
-  },
-});
+      return tx.sale.findUniqueOrThrow({
+        where: {
+          id: sale.id,
+        },
+        include: {
+          customer: true,
+          items: {
+            include: {
+              batch: {
+                include: {
+                  medicine: true,
+                },
+              },
+            },
+          },
+        },
+      });
     });
+  }
+    async getAll() {
+    return saleRepository.prisma.sale.findMany({
+      orderBy: {
+        saleDate: "desc",
+      },
+      include: {
+        customer: true,
+        items: {
+          include: {
+            batch: {
+              include: {
+                medicine: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async getById(id: string) {
+    const sale = await saleRepository.prisma.sale.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        customer: true,
+        items: {
+          include: {
+            batch: {
+              include: {
+                medicine: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!sale) {
+      throw new AppError(404, "Sale not found");
+    }
+
+    return sale;
   }
 }
 

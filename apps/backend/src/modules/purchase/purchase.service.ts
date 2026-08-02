@@ -8,7 +8,6 @@ import { AppError } from "../../shared/errors/app-error.js";
 export class PurchaseService {
   async create(data: CreatePurchaseDTO): Promise<Purchase> {
     return purchaseRepository.prisma.$transaction(async (tx) => {
-      // Check supplier
       const supplier = await tx.supplier.findUnique({
         where: {
           id: data.supplierId,
@@ -21,7 +20,15 @@ export class PurchaseService {
 
       let totalAmount = 0;
 
-      // Validate medicines and calculate total
+      const purchase = await tx.purchase.create({
+        data: {
+          invoiceNo: data.invoiceNo,
+          purchaseDate: data.purchaseDate ?? new Date(),
+          supplierId: data.supplierId,
+          totalAmount: 0,
+        },
+      });
+
       for (const item of data.items) {
         const medicine = await tx.medicine.findUnique({
           where: {
@@ -30,37 +37,61 @@ export class PurchaseService {
         });
 
         if (!medicine) {
-          throw new AppError(404, "Medicine not found");
+          throw new AppError(
+            404,
+            `Medicine not found: ${item.medicineId}`
+          );
         }
 
-        totalAmount += item.quantity * item.purchasePrice;
-      }
+        const subtotal = item.quantity * item.purchasePrice;
 
-      // Create purchase
-      const purchase = await tx.purchase.create({
-        data: {
-          invoiceNo: data.invoiceNo,
-          purchaseDate: data.purchaseDate ?? new Date(),
-          supplierId: data.supplierId,
-          totalAmount,
-        },
-      });
+        totalAmount += subtotal;
 
-      // Create purchase items and update stock
-      for (const item of data.items) {
+        const batch = await tx.medicineBatch.create({
+          data: {
+            medicineId: medicine.id,
+            supplierId: supplier.id,
+            purchaseId: purchase.id,
+
+            batchNo: item.batchNo,
+            manufacturingDate: item.manufacturingDate,
+            expiryDate: item.expiryDate,
+
+            purchasePrice: item.purchasePrice,
+
+            quantity: item.quantity,
+            remainingQuantity: item.quantity,
+
+            rackLocation: item.rackLocation,
+          },
+        });
+
         await tx.purchaseItem.create({
           data: {
             purchaseId: purchase.id,
-            medicineId: item.medicineId,
+            batchId: batch.id,
             quantity: item.quantity,
             purchasePrice: item.purchasePrice,
-            subtotal: item.quantity * item.purchasePrice,
+            subtotal,
+          },
+        });
+
+        await tx.inventoryTransaction.create({
+          data: {
+            medicineId: medicine.id,
+            batchId: batch.id,
+            type: "PURCHASE",
+            quantity: item.quantity,
+            previousStock: medicine.stock,
+            newStock: medicine.stock + item.quantity,
+            referenceId: purchase.id,
+            notes: `Purchase Invoice ${purchase.invoiceNo}`,
           },
         });
 
         await tx.medicine.update({
           where: {
-            id: item.medicineId,
+            id: medicine.id,
           },
           data: {
             stock: {
@@ -70,8 +101,63 @@ export class PurchaseService {
         });
       }
 
+      await tx.purchase.update({
+        where: {
+          id: purchase.id,
+        },
+        data: {
+          totalAmount,
+        },
+      });
+
       return purchase;
     });
+  }
+
+  async getAll() {
+    return purchaseRepository.prisma.purchase.findMany({
+      orderBy: {
+        purchaseDate: "desc",
+      },
+      include: {
+        supplier: true,
+        items: {
+          include: {
+            batch: {
+              include: {
+                medicine: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async getById(id: string) {
+    const purchase = await purchaseRepository.prisma.purchase.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        supplier: true,
+        items: {
+          include: {
+            batch: {
+              include: {
+                medicine: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!purchase) {
+      throw new AppError(404, "Purchase not found");
+    }
+
+    return purchase;
   }
 }
 

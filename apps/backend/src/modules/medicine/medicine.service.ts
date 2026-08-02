@@ -1,41 +1,34 @@
 import { Medicine } from "@prisma/client";
+
 import type { MedicineQuery } from "./medicine.query.js";
+
 import { medicineRepository } from "./medicine.repository.js";
 import { auditService } from "../audit/audit.service.js";
+
 import {
   CreateMedicineDTO,
   UpdateMedicineDTO,
 } from "./medicine.validation.js";
+
 import { AppError } from "../../shared/errors/app-error.js";
 
 export class MedicineService {
   async create(data: CreateMedicineDTO): Promise<Medicine> {
-    const existingMedicine = await medicineRepository.findByBatchNo(
-      data.batchNo
-    );
-
-    if (existingMedicine) {
-      throw new AppError(409, "Batch number already exists");
-    }
-
     const medicine = await medicineRepository.create({
-      name: data.name,
-      genericName: data.genericName,
-      brand: data.brand,
-      batchNo: data.batchNo,
-      expiryDate: data.expiryDate,
-      purchasePrice: data.purchasePrice,
-      sellingPrice: data.sellingPrice,
-      stock: data.stock,
-      unit: data.unit,
-      category: data.categoryId
-        ? {
-            connect: {
-              id: data.categoryId,
-            },
-          }
-        : undefined,
-    });
+  name: data.name,
+  genericName: data.genericName,
+  sellingPrice: data.sellingPrice,
+  unit: data.unit,
+  minimumStock: data.minimumStock,
+
+  category: data.categoryId
+    ? {
+        connect: {
+          id: data.categoryId,
+        },
+      }
+    : undefined,
+});
 
     await auditService.create({
       action: "CREATE",
@@ -65,15 +58,32 @@ export class MedicineService {
     id: string,
     data: UpdateMedicineDTO
   ): Promise<Medicine> {
-    const existingMedicine = await this.findById(id);
+    await this.findById(id);
 
-    const updatedMedicine = await medicineRepository.update(id, data);
+    const updateData: any = {
+      ...data,
+    };
+
+    if (data.categoryId) {
+      updateData.category = {
+        connect: {
+          id: data.categoryId,
+        },
+      };
+
+      delete updateData.categoryId;
+    }
+
+    const updatedMedicine = await medicineRepository.update(
+      id,
+      updateData
+    );
 
     await auditService.create({
       action: "UPDATE",
       entity: "Medicine",
       entityId: updatedMedicine.id,
-      oldValue: existingMedicine,
+      oldValue: await this.findById(id),
       newValue: updatedMedicine,
     });
 

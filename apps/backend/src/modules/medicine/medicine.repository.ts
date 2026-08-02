@@ -1,6 +1,9 @@
 import { Prisma } from "@prisma/client";
+
 import { prisma } from "../../database/prisma.js";
+
 import type { MedicineQuery } from "./medicine.query.js";
+
 import { getPagination } from "../../shared/utils/pagination.js";
 import { getSort } from "../../shared/utils/sort.js";
 
@@ -10,16 +13,11 @@ export const medicineRepository = {
       data,
       include: {
         category: true,
+        batches: true,
       },
     });
   },
-async findByBatchNo(batchNo: string) {
-  return prisma.medicine.findUnique({
-    where: {
-      batchNo,
-    },
-  });
-},
+
   async findAll(query: MedicineQuery) {
     const { page, limit, skip, take } = getPagination(query);
 
@@ -28,7 +26,6 @@ async findByBatchNo(batchNo: string) {
       [
         "name",
         "genericName",
-        "brand",
         "sellingPrice",
         "stock",
         "createdAt",
@@ -51,12 +48,6 @@ async findByBatchNo(batchNo: string) {
               mode: Prisma.QueryMode.insensitive,
             },
           },
-          {
-            brand: {
-              contains: query.search,
-              mode: Prisma.QueryMode.insensitive,
-            },
-          },
         ],
       }),
 
@@ -75,12 +66,6 @@ async findByBatchNo(batchNo: string) {
           lte: 10,
         },
       }),
-
-      ...(query.expired && {
-        expiryDate: {
-          lt: new Date(),
-        },
-      }),
     };
 
     const [medicines, total] = await Promise.all([
@@ -91,6 +76,7 @@ async findByBatchNo(batchNo: string) {
         orderBy,
         include: {
           category: true,
+          batches: true,
         },
       }),
 
@@ -112,26 +98,37 @@ async findByBatchNo(batchNo: string) {
 
   async findById(id: string) {
     return prisma.medicine.findUnique({
-      where: { id },
+      where: {
+        id,
+      },
       include: {
         category: true,
+        batches: true,
       },
     });
   },
 
-  async update(id: string, data: Prisma.MedicineUpdateInput) {
+  async update(
+    id: string,
+    data: Prisma.MedicineUpdateInput
+  ) {
     return prisma.medicine.update({
-      where: { id },
+      where: {
+        id,
+      },
       data,
       include: {
         category: true,
+        batches: true,
       },
     });
   },
 
   async delete(id: string) {
     return prisma.medicine.delete({
-      where: { id },
+      where: {
+        id,
+      },
     });
   },
 };

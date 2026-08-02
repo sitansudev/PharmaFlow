@@ -14,6 +14,7 @@ export function authenticate(
   res: Response,
   next: NextFunction
 ) {
+
   const authHeader = req.headers.authorization;
 
   if (!authHeader?.startsWith("Bearer ")) {

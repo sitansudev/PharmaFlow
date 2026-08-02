@@ -3,34 +3,42 @@ import { z } from "zod";
 export const createMedicineSchema = z.object({
   name: z
     .string()
+    .trim()
     .min(2, "Medicine name must be at least 2 characters"),
 
   genericName: z
     .string()
+    .trim()
     .optional(),
 
-  brand: z
-    .string()
-    .optional(),
+  sellingPrice: z.coerce
+    .number()
+    .positive("Selling price must be greater than 0"),
 
-  batchNo: z
-    .string()
-    .min(1, "Batch number is required"),
-
-  expiryDate: z.coerce.date(),
-
-  purchasePrice: z.coerce.number().positive(),
-
-  sellingPrice: z.coerce.number().positive(),
-
-  stock: z.coerce.number().int().min(0),
-  categoryId: z.string().cuid().optional(),
   unit: z
     .string()
+    .trim()
     .min(1, "Unit is required"),
+
+  minimumStock: z.coerce
+    .number()
+    .int()
+    .min(0)
+    .default(10),
+
+  categoryId: z
+    .string()
+    .cuid()
+    .optional(),
 });
 
-export const updateMedicineSchema = createMedicineSchema.partial();
+export const updateMedicineSchema =
+  createMedicineSchema.partial();
 
-export type CreateMedicineDTO = z.infer<typeof createMedicineSchema>;
-export type UpdateMedicineDTO = z.infer<typeof updateMedicineSchema>;
+export type CreateMedicineDTO = z.infer<
+  typeof createMedicineSchema
+>;
+
+export type UpdateMedicineDTO = z.infer<
+  typeof updateMedicineSchema
+>;
