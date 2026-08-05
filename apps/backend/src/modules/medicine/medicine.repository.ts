@@ -13,7 +13,14 @@ export const medicineRepository = {
       data,
       include: {
         category: true,
-        batches: true,
+        batches: {
+          include: {
+            supplier: true,
+          },
+          orderBy: {
+            expiryDate: "asc",
+          },
+        },
       },
     });
   },
@@ -76,7 +83,14 @@ export const medicineRepository = {
         orderBy,
         include: {
           category: true,
-          batches: true,
+          batches: {
+            include: {
+              supplier: true,
+            },
+            orderBy: {
+              expiryDate: "asc",
+            },
+          },
         },
       }),
 
@@ -103,7 +117,14 @@ export const medicineRepository = {
       },
       include: {
         category: true,
-        batches: true,
+        batches: {
+          include: {
+            supplier: true,
+          },
+          orderBy: {
+            expiryDate: "asc",
+          },
+        },
       },
     });
   },
@@ -119,7 +140,14 @@ export const medicineRepository = {
       data,
       include: {
         category: true,
-        batches: true,
+        batches: {
+          include: {
+            supplier: true,
+          },
+          orderBy: {
+            expiryDate: "asc",
+          },
+        },
       },
     });
   },
