@@ -11,14 +11,32 @@ export const createMedicineSchema = z.object({
     .trim()
     .optional(),
 
+  supplierId: z
+    .string()
+    .cuid("Supplier is required"),
+
+  categoryId: z
+    .string()
+    .cuid()
+    .optional(),
+
+  batchNo: z
+    .string()
+    .trim()
+    .min(1, "Batch number is required"),
+
+  purchasePrice: z.coerce
+    .number()
+    .positive("Purchase price must be greater than 0"),
+
   sellingPrice: z.coerce
     .number()
     .positive("Selling price must be greater than 0"),
 
-  unit: z
-    .string()
-    .trim()
-    .min(1, "Unit is required"),
+  stock: z.coerce
+    .number()
+    .int()
+    .min(0),
 
   minimumStock: z.coerce
     .number()
@@ -26,9 +44,25 @@ export const createMedicineSchema = z.object({
     .min(0)
     .default(10),
 
-  categoryId: z
+  unit: z
     .string()
-    .cuid()
+    .trim()
+    .min(1, "Unit is required"),
+
+  expiryDate: z.coerce.date(),
+
+  manufacturingDate: z.coerce
+    .date()
+    .optional(),
+
+  rackLocation: z
+    .string()
+    .trim()
+    .optional(),
+
+  barcode: z
+    .string()
+    .trim()
     .optional(),
 });
 

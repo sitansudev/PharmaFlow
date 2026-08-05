@@ -1,5 +1,5 @@
 import { Medicine } from "@prisma/client";
-
+import { prisma } from "../../database/prisma.js";
 import type { MedicineQuery } from "./medicine.query.js";
 
 import { medicineRepository } from "./medicine.repository.js";
@@ -14,31 +14,90 @@ import { AppError } from "../../shared/errors/app-error.js";
 
 export class MedicineService {
   async create(data: CreateMedicineDTO): Promise<Medicine> {
-    const medicine = await medicineRepository.create({
-  name: data.name,
-  genericName: data.genericName,
-  sellingPrice: data.sellingPrice,
-  unit: data.unit,
-  minimumStock: data.minimumStock,
+  return prisma.$transaction(async (tx) => {
+    const medicine = await tx.medicine.create({
+  data: {
+    name: data.name,
+    genericName: data.genericName,
+    sellingPrice: data.sellingPrice,
+    stock: data.stock,
+    minimumStock: data.minimumStock,
+    unit: data.unit,
+    barcode: data.barcode,
 
-  category: data.categoryId
-    ? {
-        connect: {
-          id: data.categoryId,
-        },
-      }
-    : undefined,
+    latestSupplierId: data.supplierId,
+    latestBatchNo: data.batchNo,
+    latestPurchasePrice: data.purchasePrice,
+    latestExpiryDate: data.expiryDate,
+
+    category: data.categoryId
+      ? {
+          connect: {
+            id: data.categoryId,
+          },
+        }
+      : undefined,
+  },
 });
 
-    await auditService.create({
-      action: "CREATE",
-      entity: "Medicine",
-      entityId: medicine.id,
-      newValue: medicine,
-    });
+// 👇 ADD THIS HERE
+await tx.medicineBatch.create({
+  data: {
+    medicineId: medicine.id,
 
-    return medicine;
-  }
+    supplierId: data.supplierId,
+
+    batchNo: data.batchNo,
+
+    purchasePrice: data.purchasePrice,
+
+    quantity: data.stock,
+
+    remainingQuantity: data.stock,
+
+    expiryDate: data.expiryDate,
+
+    manufacturingDate: data.manufacturingDate,
+
+    rackLocation: data.rackLocation,
+
+    isActive: true,
+  },
+});await tx.inventoryTransaction.create({
+  data: {
+    medicineId: medicine.id,
+
+    type: "PURCHASE",
+
+    quantity: data.stock,
+
+    previousStock: 0,
+
+    newStock: data.stock,
+
+    notes: "Initial stock while creating medicine",
+  },
+});
+await tx.inventoryTransaction.create({
+  data: {
+    medicineId: medicine.id,
+
+    type: "PURCHASE",
+
+    quantity: data.stock,
+
+    previousStock: 0,
+
+    newStock: data.stock,
+
+    notes: "Initial stock while creating medicine",
+  },
+});
+// 👇 keep this
+return medicine;
+    });
+}
+    
 
   async findAll(query: MedicineQuery) {
     return medicineRepository.findAll(query);
