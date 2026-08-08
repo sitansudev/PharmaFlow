@@ -13,6 +13,15 @@ export const saleService = {
     return response.data;
   },
 
+  async getById(id: string) {
+    const response =
+      await api.get<{ success: boolean; data: Sale }>(
+        `/sales/${id}`
+      );
+
+    return response.data;
+  },
+
   async create(data: CreateSaleInput) {
     const response =
       await api.post("/sales", data);

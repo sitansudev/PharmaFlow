@@ -24,7 +24,7 @@ export function ExpiringMedicines({
     <Card>
       <CardHeader>
         <CardTitle>
-          🚨 Near Expiry Medicines
+               🚨 Near Expiry Medicines
         </CardTitle>
       </CardHeader>
 

@@ -58,10 +58,17 @@ export interface CreateSaleItem {
   quantity: number;
 }
 
+export type PaymentMethod =
+  | "CASH"
+  | "ESEWA"
+  | "FONEPAY";
+
 export interface CreateSaleInput {
   invoiceNo: string;
 
   customerId?: string;
+
+  paymentMethod: PaymentMethod;
 
   items: CreateSaleItem[];
 }

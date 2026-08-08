@@ -27,7 +27,7 @@ export default function DashboardPage() {
   }
 
   const stats = data.data.stats;
-
+  console.log(JSON.stringify(data.data.expiringMedicines, null, 2));
   return (
     <div className="mx-auto max-w-7xl space-y-8">
 

@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import type { Sale } from "@/types/sale";
 
 import {
@@ -10,6 +12,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+
+import { Button } from "@/components/ui/button";
 
 interface Props {
   sales: Sale[];
@@ -44,6 +48,9 @@ export function SaleTable({ sales }: Props) {
             <TableHead className="text-right">
               Total
             </TableHead>
+            <TableHead className="text-right">
+              Action
+            </TableHead>
           </TableRow>
         </TableHeader>
 
@@ -77,9 +84,18 @@ export function SaleTable({ sales }: Props) {
               </TableCell>
 
               <TableCell className="text-right font-semibold">
-                ₹{Number(
-                  sale.totalAmount
-                ).toFixed(2)}
+                ₹{Number(sale.totalAmount).toFixed(2)}
+              </TableCell>
+
+              <TableCell className="text-right">
+                <Link href={`/sales/${sale.id}`}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                  >
+                    View
+                  </Button>
+                </Link>
               </TableCell>
             </TableRow>
           ))}
