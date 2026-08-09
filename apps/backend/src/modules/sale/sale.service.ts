@@ -117,7 +117,7 @@ export class SaleService {
 
           totalAmount,
 
-          paymentMethod: PaymentMethod.CASH,
+          paymentMethod: data.paymentMethod as PaymentMethod,
 
           paymentStatus: PaymentStatus.PAID,
 

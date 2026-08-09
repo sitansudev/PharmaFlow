@@ -11,7 +11,15 @@ export const createSaleSchema = z.object({
 
   customerId: z.string().cuid().optional(),
 
+  paymentMethod: z.enum([
+    "CASH",
+    "ESEWA",
+    "FONEPAY",
+  ]),
+
   items: z.array(saleItemSchema).min(1),
 });
 
-export type CreateSaleDTO = z.infer<typeof createSaleSchema>;
+export type CreateSaleDTO = z.infer<
+  typeof createSaleSchema
+>;

@@ -143,6 +143,8 @@ enum PaymentMethod {
   CARD
   CREDIT
   MIXED
+  ESEWA
+  FONEPAY
 }
 
 enum PaymentStatus {

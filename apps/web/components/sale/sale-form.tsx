@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   useFieldArray,
   useForm,
@@ -49,7 +49,8 @@ export function SaleForm({ onSuccess }: SaleFormProps) {
   const { data: medicinesResponse, isLoading } = useMedicines();
 
   const medicines = medicinesResponse?.data ?? [];
-
+  const [medicineSearch, setMedicineSearch] = useState("");
+  const [openMedicineIndex, setOpenMedicineIndex] = useState<number | null>(null);
   const {
     register,
     control,
@@ -207,7 +208,7 @@ export function SaleForm({ onSuccess }: SaleFormProps) {
 
         {fields.map((field, index) => {
           const selectedBatch = getBatch(
-            items[index]?.batchId
+            items[index]?.batchId ??""
           );
 
           const medicine = selectedBatch?.medicine;
@@ -228,58 +229,118 @@ export function SaleForm({ onSuccess }: SaleFormProps) {
               className="rounded-xl border p-5"
             >
               <div className="grid gap-4 md:grid-cols-4">
-                {/* Medicine */}
+               {/* Medicine */}
 
-                <div className="space-y-2">
-                  <Label>Medicine</Label>
+<div className="relative space-y-2">
+  <Label>Medicine</Label>
 
-                  <select
-                    className="h-10 w-full rounded-md border bg-background px-3 text-sm"
-                    value={
-                      medicine?.id ?? ""
-                    }
-                    onChange={(event) => {
-                      const medicineId =
-                        event.target.value;
+  <Input
+  placeholder="Search medicine..."
+  value={
+    openMedicineIndex === index
+      ? medicineSearch
+      : medicine?.name ?? ""
+  }
+  onFocus={() => {
+    setOpenMedicineIndex(index);
 
-                      setValue(
-                        `items.${index}.batchId`,
-                        ""
-                      );
+    setMedicineSearch(
+      medicine?.name ?? ""
+    );
+  }}
+  onChange={(event) => {
+    const value = event.target.value;
 
-                      const selectedMedicine =
-                        medicines.find(
-                          (medicine) =>
-                            medicine.id ===
-                            medicineId
-                        );
+    setOpenMedicineIndex(index);
+    setMedicineSearch(value);
 
-                      if (
-                        selectedMedicine?.batches
-                          ?.length === 1
-                      ) {
-                        setValue(
-                          `items.${index}.batchId`,
-                          selectedMedicine.batches[0]
-                            .id
-                        );
-                      }
-                    }}
-                  >
-                    <option value="">
-                      Select medicine
-                    </option>
+    // Clear the selected medicine/batch
+    // when the user edits the search text.
+    if (value !== medicine?.name) {
+      setValue(
+        `items.${index}.batchId`,
+        ""
+      );
+    }
+  }}
+/>
 
-                    {medicines.map((medicine) => (
-                      <option
-                        key={medicine.id}
-                        value={medicine.id}
-                      >
-                        {medicine.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+  {openMedicineIndex === index && (
+    <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-y-auto rounded-md border bg-white shadow-lg">
+      {medicines
+        .filter((medicineOption) => {
+          const search =
+            medicineSearch.toLowerCase().trim();
+
+          if (!search) return true;
+
+          return (
+            medicineOption.name
+              .toLowerCase()
+              .includes(search) ||
+            medicineOption.genericName
+              ?.toLowerCase()
+              .includes(search)
+          );
+        })
+        .map((medicineOption) => (
+          <button
+            key={medicineOption.id}
+            type="button"
+            className="flex w-full flex-col items-start px-3 py-2 text-left hover:bg-slate-100"
+            onClick={() => {
+              setValue(
+                `items.${index}.batchId`,
+                medicineOption.batches.length === 1
+                  ? medicineOption.batches[0]?.id ?? ""
+                  : ""
+              );
+
+              setMedicineSearch(
+                medicineOption.name
+              );
+
+              setOpenMedicineIndex(null);
+            }}
+          >
+            <span className="font-medium">
+              {medicineOption.name}
+            </span>
+
+            {medicineOption.genericName && (
+              <span className="text-xs text-muted-foreground">
+                {medicineOption.genericName}
+              </span>
+            )}
+
+            <span className="text-xs text-muted-foreground">
+              Stock: {medicineOption.stock}
+            </span>
+          </button>
+        ))}
+
+      {medicines.filter((medicineOption) => {
+        const search =
+          medicineSearch.toLowerCase().trim();
+
+        if (!search) return true;
+
+        return (
+          medicineOption.name
+            .toLowerCase()
+            .includes(search) ||
+          medicineOption.genericName
+            ?.toLowerCase()
+            .includes(search)
+        );
+      }).length === 0 && (
+        <div className="px-3 py-3 text-sm text-muted-foreground">
+          No medicines found.
+        </div>
+      )}
+    </div>
+  )}
+</div>
 
                 {/* Batch */}
 

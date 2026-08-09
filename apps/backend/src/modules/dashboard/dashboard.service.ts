@@ -89,17 +89,30 @@ export class DashboardService {
           },
         },
         include: {
-          medicine: {
-            include: {
-              category: true,
-            },
-          },
-          supplier: true,
-        },
-        orderBy: {
-          expiryDate: "asc",
-        },
-      }),
+
+    medicine: {
+
+      select: {
+
+        id: true,
+
+        name: true,
+
+        stock: true,
+
+      },
+
+    },
+
+  },
+
+  orderBy: {
+
+    expiryDate: "asc",
+
+  },
+
+}),
 
       prisma.sale.findMany({
         orderBy: {
@@ -139,9 +152,21 @@ export class DashboardService {
 
       lowStockMedicines,
 
-      expiringMedicines: expiringBatches,
+      expiringMedicines: expiringBatches.map((batch) => ({
+  id: batch.id,
+  name: batch.medicine.name,
+  batchNo: batch.batchNo,
+  stock: batch.medicine.stock,
+  expiryDate: batch.expiryDate,
+})),
 
-      expiredMedicines: expiredBatches,
+expiredMedicines: expiredBatches.map((batch) => ({
+  id: batch.id,
+  name: batch.medicine.name,
+  batchNo: batch.batchNo,
+  stock: batch.medicine.stock,
+  expiryDate: batch.expiryDate,
+})),
 
       recentSales,
 

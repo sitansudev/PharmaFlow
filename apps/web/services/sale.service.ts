@@ -1,6 +1,7 @@
 import { api } from "@/lib/api";
 
 import type {
+  Sale,
   SaleResponse,
   CreateSaleInput,
 } from "@/types/sale";
@@ -15,9 +16,10 @@ export const saleService = {
 
   async getById(id: string) {
     const response =
-      await api.get<{ success: boolean; data: Sale }>(
-        `/sales/${id}`
-      );
+      await api.get<{
+        success: boolean;
+        data: Sale;
+      }>(`/sales/${id}`);
 
     return response.data;
   },

@@ -10,7 +10,7 @@ import {
 import { KPICard } from "@/components/dashboard/kpi-card";
 import { ExpiringMedicines } from "@/components/dashboard/expiring-medicines";
 import { useDashboard } from "@/hooks/use-dashboard";
-
+import { LowStockMedicines } from "@/components/dashboard/low-stock-medicines";
 export default function DashboardPage() {
   const { data, isLoading, isError } = useDashboard();
 
@@ -76,6 +76,9 @@ export default function DashboardPage() {
         />
 
       </div>
+        <LowStockMedicines
+         medicines={data.data.lowStockMedicines}
+        />
 
       {/* Near Expiry */}
 
