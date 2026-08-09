@@ -135,6 +135,7 @@ model Customer {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   loyaltyPoints Int @default(0)
+  dueAmount     Decimal @default(0) @db.Decimal(10, 2)
 }
 
 enum PaymentMethod {

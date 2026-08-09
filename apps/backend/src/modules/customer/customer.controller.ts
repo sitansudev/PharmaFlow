@@ -4,10 +4,15 @@ import { customerService } from "./customer.service.js";
 import {
   createCustomerSchema,
   updateCustomerSchema,
+  recordPaymentSchema,
 } from "./customer.validation.js";
 
 export class CustomerController {
-  async create(req: Request, res: Response, next: NextFunction) {
+  async create(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
       const data = createCustomerSchema.parse(req.body);
 
@@ -23,7 +28,11 @@ export class CustomerController {
     }
   }
 
-  async findAll(req: Request, res: Response, next: NextFunction) {
+  async findAll(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
       const customers = await customerService.findAll();
 
@@ -37,58 +46,88 @@ export class CustomerController {
   }
 
   async findById(
-  req: Request<{ id: string }>,
-  res: Response,
-  next: NextFunction
-) {
-  try {
-    const customer = await customerService.findById(req.params.id);
+    req: Request<{ id: string }>,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const customer = await customerService.findById(
+        req.params.id
+      );
 
-    res.json({
-      success: true,
-      data: customer,
-    });
-  } catch (error) {
-    next(error);
+      res.json({
+        success: true,
+        data: customer,
+      });
+    } catch (error) {
+      next(error);
+    }
   }
-}
 
   async update(
-  req: Request<{ id: string }>,
-  res: Response,
-  next: NextFunction
-) {
-  try {
-    const data = updateCustomerSchema.parse(req.body);
+    req: Request<{ id: string }>,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const data = updateCustomerSchema.parse(req.body);
 
-    const customer = await customerService.update(req.params.id, data);
+      const customer = await customerService.update(
+        req.params.id,
+        data
+      );
 
-    res.json({
-      success: true,
-      message: "Customer updated successfully",
-      data: customer,
-    });
-  } catch (error) {
-    next(error);
+      res.json({
+        success: true,
+        message: "Customer updated successfully",
+        data: customer,
+      });
+    } catch (error) {
+      next(error);
+    }
   }
-}
 
   async delete(
-  req: Request<{ id: string }>,
-  res: Response,
-  next: NextFunction
-) {
-  try {
-    await customerService.delete(req.params.id);
+    req: Request<{ id: string }>,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      await customerService.delete(req.params.id);
 
-    res.json({
-      success: true,
-      message: "Customer deleted successfully",
-    });
-  } catch (error) {
-    next(error);
+      res.json({
+        success: true,
+        message: "Customer deleted successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async recordPayment(
+    req: Request<{ id: string }>,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const data = recordPaymentSchema.parse(req.body);
+
+      const customer =
+        await customerService.recordPayment(
+          req.params.id,
+          data
+        );
+
+      res.json({
+        success: true,
+        message: "Payment recorded successfully",
+        data: customer,
+      });
+    } catch (error) {
+      next(error);
+    }
   }
 }
-}
 
-export const customerController = new CustomerController();
+export const customerController =
+  new CustomerController();

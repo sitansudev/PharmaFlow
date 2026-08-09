@@ -1,8 +1,14 @@
-import { Prisma, Customer } from "@prisma/client";
+import {
+  Prisma,
+  Customer,
+} from "@prisma/client";
+
 import { prisma } from "../../database/prisma.js";
 
 export class CustomerRepository {
-  async create(data: Prisma.CustomerCreateInput): Promise<Customer> {
+  async create(
+    data: Prisma.CustomerCreateInput
+  ): Promise<Customer> {
     return prisma.customer.create({
       data,
     });
@@ -16,7 +22,9 @@ export class CustomerRepository {
     });
   }
 
-  async findById(id: string): Promise<Customer | null> {
+  async findById(
+    id: string
+  ): Promise<Customer | null> {
     return prisma.customer.findUnique({
       where: {
         id,
@@ -24,7 +32,9 @@ export class CustomerRepository {
     });
   }
 
-  async findByPhone(phone: string): Promise<Customer | null> {
+  async findByPhone(
+    phone: string
+  ): Promise<Customer | null> {
     return prisma.customer.findUnique({
       where: {
         phone,
@@ -32,7 +42,9 @@ export class CustomerRepository {
     });
   }
 
-  async findByEmail(email: string): Promise<Customer | null> {
+  async findByEmail(
+    email: string
+  ): Promise<Customer | null> {
     return prisma.customer.findUnique({
       where: {
         email,
@@ -52,13 +64,53 @@ export class CustomerRepository {
     });
   }
 
-  async delete(id: string): Promise<Customer> {
+  async delete(
+    id: string
+  ): Promise<Customer> {
     return prisma.customer.delete({
       where: {
         id,
       },
     });
   }
+
+  async recordPayment(
+    id: string,
+    amount: Prisma.Decimal
+  ): Promise<Customer> {
+    return prisma.$transaction(
+      async (tx) => {
+        const customer =
+          await tx.customer.findUnique({
+            where: { id },
+          });
+
+        if (!customer) {
+          throw new Error(
+            "Customer not found"
+          );
+        }
+
+        if (
+          customer.dueAmount.lt(amount)
+        ) {
+          throw new Error(
+            "Payment cannot be greater than due amount"
+          );
+        }
+
+        return tx.customer.update({
+          where: { id },
+          data: {
+            dueAmount: {
+              decrement: amount,
+            },
+          },
+        });
+      }
+    );
+  }
 }
 
-export const customerRepository = new CustomerRepository();
+export const customerRepository =
+  new CustomerRepository();

@@ -1,28 +1,39 @@
-import { Customer } from "@prisma/client";
+import { Prisma, Customer } from "@prisma/client";
 
 import { customerRepository } from "./customer.repository.js";
 import {
   CreateCustomerDTO,
   UpdateCustomerDTO,
+  RecordPaymentDTO,
 } from "./customer.validation.js";
 
 import { AppError } from "../../shared/errors/app-error.js";
 
 export class CustomerService {
-  async create(data: CreateCustomerDTO): Promise<Customer> {
+  async create(
+    data: CreateCustomerDTO
+  ): Promise<Customer> {
     if (data.phone) {
-      const existingPhone = await customerRepository.findByPhone(data.phone);
+      const existingPhone =
+        await customerRepository.findByPhone(data.phone);
 
       if (existingPhone) {
-        throw new AppError(409, "Phone number already exists");
+        throw new AppError(
+          409,
+          "Phone number already exists"
+        );
       }
     }
 
     if (data.email) {
-      const existingEmail = await customerRepository.findByEmail(data.email);
+      const existingEmail =
+        await customerRepository.findByEmail(data.email);
 
       if (existingEmail) {
-        throw new AppError(409, "Email already exists");
+        throw new AppError(
+          409,
+          "Email already exists"
+        );
       }
     }
 
@@ -34,10 +45,14 @@ export class CustomerService {
   }
 
   async findById(id: string): Promise<Customer> {
-    const customer = await customerRepository.findById(id);
+    const customer =
+      await customerRepository.findById(id);
 
     if (!customer) {
-      throw new AppError(404, "Customer not found");
+      throw new AppError(
+        404,
+        "Customer not found"
+      );
     }
 
     return customer;
@@ -50,18 +65,32 @@ export class CustomerService {
     await this.findById(id);
 
     if (data.phone) {
-      const existingPhone = await customerRepository.findByPhone(data.phone);
+      const existingPhone =
+        await customerRepository.findByPhone(data.phone);
 
-      if (existingPhone && existingPhone.id !== id) {
-        throw new AppError(409, "Phone number already exists");
+      if (
+        existingPhone &&
+        existingPhone.id !== id
+      ) {
+        throw new AppError(
+          409,
+          "Phone number already exists"
+        );
       }
     }
 
     if (data.email) {
-      const existingEmail = await customerRepository.findByEmail(data.email);
+      const existingEmail =
+        await customerRepository.findByEmail(data.email);
 
-      if (existingEmail && existingEmail.id !== id) {
-        throw new AppError(409, "Email already exists");
+      if (
+        existingEmail &&
+        existingEmail.id !== id
+      ) {
+        throw new AppError(
+          409,
+          "Email already exists"
+        );
       }
     }
 
@@ -73,6 +102,37 @@ export class CustomerService {
 
     await customerRepository.delete(id);
   }
+
+  async recordPayment(
+    id: string,
+    data: RecordPaymentDTO
+  ): Promise<Customer> {
+    const customer = await this.findById(id);
+
+    const amount = new Prisma.Decimal(
+      data.amount
+    );
+
+    if (amount.lte(0)) {
+      throw new AppError(
+        400,
+        "Payment amount must be greater than zero"
+      );
+    }
+
+    if (amount.gt(customer.dueAmount)) {
+      throw new AppError(
+        400,
+        "Payment cannot be greater than due amount"
+      );
+    }
+
+    return customerRepository.recordPayment(
+      id,
+      amount
+    );
+  }
 }
 
-export const customerService = new CustomerService();
+export const customerService =
+  new CustomerService();
