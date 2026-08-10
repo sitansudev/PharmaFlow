@@ -42,22 +42,43 @@ export const medicineRepository = {
 
     const where: Prisma.MedicineWhereInput = {
       ...(query.search && {
-        OR: [
-          {
+  OR: [
+    {
+      name: {
+        contains: query.search,
+        mode: Prisma.QueryMode.insensitive,
+      },
+    },
+    {
+      genericName: {
+        contains: query.search,
+        mode: Prisma.QueryMode.insensitive,
+      },
+    },
+    {
+      batches: {
+        some: {
+          batchNo: {
+            contains: query.search,
+            mode: Prisma.QueryMode.insensitive,
+          },
+        },
+      },
+    },
+    {
+      batches: {
+        some: {
+          supplier: {
             name: {
               contains: query.search,
               mode: Prisma.QueryMode.insensitive,
             },
           },
-          {
-            genericName: {
-              contains: query.search,
-              mode: Prisma.QueryMode.insensitive,
-            },
-          },
-        ],
-      }),
-
+        },
+      },
+    },
+  ],
+}),
       ...(query.categoryId && {
         categoryId: query.categoryId,
       }),

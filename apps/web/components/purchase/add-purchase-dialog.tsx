@@ -31,7 +31,7 @@ export function AddPurchaseDialog() {
         }
       />
 
-      <DialogContent className="max-w-5xl">
+      <DialogContent className="!w-[95vw] !max-w-[1400px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             Create Purchase

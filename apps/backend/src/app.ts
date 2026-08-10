@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-
+import helmet from "helmet";
 import { swaggerUi, swaggerSpec } from "./config/swagger.js";
 import { errorHandler } from "./shared/errors/error-handler.js";
 
@@ -12,7 +12,7 @@ import purchaseRoutes from "./modules/purchase/purchase.routes.js";
 import customerRoutes from "./modules/customer/customer.routes.js";
 import saleRoutes from "./modules/sale/sale.routes.js";
 import dashboardRoutes from "./modules/dashboard/dashboard.routes.js";
-
+import { env } from "./config/env.js";
 import {
   authenticate,
   type AuthRequest,
@@ -24,8 +24,14 @@ const app = express();
 // ======================================
 // Global Middlewares
 // ======================================
+app.use(helmet());
 
-app.use(cors());
+app.use(
+  cors({
+    origin: env.FRONTEND_URL,
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 // ======================================

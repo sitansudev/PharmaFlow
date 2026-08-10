@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -59,15 +59,20 @@ export function PurchaseForm({
   const { data: suppliers } = useSuppliers();
 
   const { data: medicines } = useMedicines();
+  const medicineList = medicines?.data ?? [];
 
+const [medicineSearch, setMedicineSearch] = useState("");
+const [openMedicineIndex, setOpenMedicineIndex] =
+  useState<number | null>(null);
   const {
-    register,
-    control,
-    handleSubmit,
-    watch,
-    reset,
-    formState: { errors },
-  } = useForm<PurchaseFormInput, any, PurchaseFormData>({
+  register,
+  control,
+  handleSubmit,
+  watch,
+  setValue,
+  reset,
+  formState: { errors },
+} = useForm<PurchaseFormInput, any, PurchaseFormData>({
     resolver: zodResolver(purchaseSchema),
 
     defaultValues: {
@@ -188,43 +193,136 @@ export function PurchaseForm({
         </div>
       </div>
 
-      <div className="rounded-xl border">
+      <div className="overflow-x-auto rounded-xl border">
+      <div className="min-w-[1250px]">
 
-        <div className="grid grid-cols-8 gap-4 border-b bg-muted p-4 font-medium">
-          <div>Medicine</div>
-          <div>Qty</div>
-          <div>Price</div>  
-          <div>Batch</div>
-          <div>Expiry</div>
-          <div>Rack</div>
-          <div>Total</div>
-          <div></div>
+    <div className="grid grid-cols-[2.5fr_0.7fr_1.2fr_1.2fr_1.3fr_1.3fr_1.1fr_1.1fr_0.8fr] gap-3 border-b bg-muted p-4 text-sm font-semibold">
+  <div>Medicine</div>
+  <div>Qty</div>
+  <div>Purchase Price</div>
+  <div>Batch No</div>
+  <div>Expiry Date</div>
+  <div>Mfg. Date</div>
+  <div>Rack Location</div>
+  <div>Total</div>
+  <div>Action</div>
+</div>
         </div>
 
         {fields.map((field, index) => (
           <div
-            key={field.id}
-            className="grid grid-cols-8 gap-4 border-b p-4"
-          >
-            <select
-              {...register(
-                `items.${index}.medicineId`
-              )}
-              className="rounded-md border p-2"
-            >
-              <option value="">
-                Select
-              </option>
+  key={field.id}
+  className="grid grid-cols-[2.5fr_0.7fr_1.2fr_1.2fr_1.3fr_1.3fr_1.1fr_1.1fr_0.8fr] items-center gap-3 border-b p-4"
+>
+            <div className="relative">
+  <Input
+  className="h-11"
+  placeholder="Search medicine..."
+    value={
+      openMedicineIndex === index
+        ? medicineSearch
+        : medicineList.find(
+            (medicine) =>
+              medicine.id ===
+              items[index]?.medicineId
+          )?.name ?? ""
+    }
+    onFocus={() => {
+      setOpenMedicineIndex(index);
 
-              {medicines?.data.map((medicine) => (
-                <option
-                  key={medicine.id}
-                  value={medicine.id}
-                >
-                  {medicine.name}
-                </option>
-              ))}
-            </select>
+      const selectedMedicine =
+        medicineList.find(
+          (medicine) =>
+            medicine.id ===
+            items[index]?.medicineId
+        );
+
+      setMedicineSearch(
+        selectedMedicine?.name ?? ""
+      );
+    }}
+    onChange={(event) => {
+      const value = event.target.value;
+
+      setOpenMedicineIndex(index);
+      setMedicineSearch(value);
+
+      const selectedMedicine =
+        medicineList.find(
+          (medicine) =>
+            medicine.id ===
+            items[index]?.medicineId
+        );
+
+      if (
+        value !== selectedMedicine?.name
+      ) {
+        setValue(
+          `items.${index}.medicineId`,
+          ""
+        );
+      }
+    }}
+  />
+
+  {openMedicineIndex === index && (
+    <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-60 overflow-y-auto rounded-md border bg-white shadow-lg">
+      {medicineList
+        .filter((medicine) => {
+          const search =
+            medicineSearch
+              .toLowerCase()
+              .trim();
+
+          if (!search) return true;
+
+          return medicine.name
+            .toLowerCase()
+            .includes(search);
+        })
+        .map((medicine) => (
+          <button
+            key={medicine.id}
+            type="button"
+            className="flex w-full items-start px-3 py-2 text-left hover:bg-slate-100"
+            onClick={() => {
+              setValue(
+                `items.${index}.medicineId`,
+                medicine.id
+              );
+
+              setMedicineSearch(
+                medicine.name
+              );
+
+              setOpenMedicineIndex(null);
+            }}
+          >
+            <span className="font-medium">
+              {medicine.name}
+            </span>
+          </button>
+        ))}
+
+      {medicineList.filter((medicine) => {
+        const search =
+          medicineSearch
+            .toLowerCase()
+            .trim();
+
+        if (!search) return true;
+
+        return medicine.name
+          .toLowerCase()
+          .includes(search);
+      }).length === 0 && (
+        <div className="px-3 py-3 text-sm text-muted-foreground">
+          No medicines found.
+        </div>
+      )}
+    </div>
+  )}
+</div>
 
             <Input
               type="number"
@@ -254,16 +352,22 @@ export function PurchaseForm({
               )}
             />
             <Input
+  type="date"
+  {...register(
+    `items.${index}.manufacturingDate`
+  )}
+/>
+            <Input
               placeholder="Rack"
               {...register(`items.${index}.rackLocation`)}
               />
-            <div className="flex items-center font-semibold">
-              ₹
-{(
-  Number(items[index]?.quantity) *
-  Number(items[index]?.purchasePrice)
-).toFixed(2)}
-            </div>
+            <div className="flex h-11 items-center rounded-md bg-slate-50 px-3 font-semibold">
+  ₹
+  {(
+    Number(items[index]?.quantity) *
+    Number(items[index]?.purchasePrice)
+  ).toFixed(2)}
+</div>
 
             <Button
               type="button"

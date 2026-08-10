@@ -90,15 +90,19 @@ export class PurchaseService {
         });
 
         await tx.medicine.update({
-          where: {
-            id: medicine.id,
-          },
-          data: {
-            stock: {
-              increment: item.quantity,
-            },
-          },
-        });
+  where: {
+    id: medicine.id,
+  },
+  data: {
+    stock: {
+      increment: item.quantity,
+    },
+    latestSupplierId: supplier.id,
+    latestBatchNo: item.batchNo,
+    latestPurchasePrice: item.purchasePrice,
+    latestExpiryDate: item.expiryDate,
+  },
+});
       }
 
       await tx.purchase.update({

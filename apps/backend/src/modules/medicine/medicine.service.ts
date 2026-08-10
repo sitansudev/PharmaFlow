@@ -78,21 +78,7 @@ await tx.medicineBatch.create({
     notes: "Initial stock while creating medicine",
   },
 });
-await tx.inventoryTransaction.create({
-  data: {
-    medicineId: medicine.id,
 
-    type: "PURCHASE",
-
-    quantity: data.stock,
-
-    previousStock: 0,
-
-    newStock: data.stock,
-
-    notes: "Initial stock while creating medicine",
-  },
-});
 // 👇 keep this
 return medicine;
     });

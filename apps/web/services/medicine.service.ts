@@ -3,11 +3,26 @@ import { api } from "@/lib/api";
 import type { MedicineResponse } from "@/types/medicine";
 
 export const medicineService = {
-  async getAll() {
-    const response = await api.get<MedicineResponse>("/medicines");
+  async getAll(
+  limit = 10,
+  search = "",
+  page = 1
+) {
+  const response = await api.get<MedicineResponse>(
+    "/medicines",
+    {
+      params: {
+        limit,
+        page,
+        ...(search.trim()
+          ? { search: search.trim() }
+          : {}),
+      },
+    }
+  );
 
-    return response.data;
-  },
+  return response.data;
+},
 
   async create(data: any) {
     const response = await api.post("/medicines", data);

@@ -131,69 +131,101 @@ export class SaleService {
         },
       });
             for (let i = 0; i < data.items.length; i++) {
-        const item = data.items[i];
-        const { batch, subtotal } = validatedItems[i];
+  const item = data.items[i];
+  const { batch, subtotal } = validatedItems[i];
 
-        await tx.saleItem.create({
-          data: {
-            saleId: sale.id,
+  const now = new Date();
 
-            batchId: batch.id,
+  if (batch.expiryDate <= now) {
+    throw new AppError(
+      400,
+      `${batch.medicine.name} batch ${batch.batchNo} has expired`
+    );
+  }
 
-            quantity: item.quantity,
+  const batchUpdate =
+    await tx.medicineBatch.updateMany({
+      where: {
+        id: batch.id,
+        isActive: true,
+        remainingQuantity: {
+          gte: item.quantity,
+        },
+      },
+      data: {
+        remainingQuantity: {
+          decrement: item.quantity,
+        },
+      },
+    });
 
-            costPrice: batch.purchasePrice,
+  if (batchUpdate.count !== 1) {
+    throw new AppError(
+      400,
+      `${batch.medicine.name} does not have enough stock in batch ${batch.batchNo}`
+    );
+  }
 
-            sellingPrice: batch.medicine.sellingPrice,
+  const previousStock = batch.medicine.stock;
 
-            subtotal,
-          },
-        });
+  const medicineUpdate =
+    await tx.medicine.updateMany({
+      where: {
+        id: batch.medicineId,
+        stock: {
+          gte: item.quantity,
+        },
+      },
+      data: {
+        stock: {
+          decrement: item.quantity,
+        },
+      },
+    });
 
-        await tx.medicineBatch.update({
-          where: {
-            id: batch.id,
-          },
-          data: {
-            remainingQuantity: {
-              decrement: item.quantity,
-            },
-          },
-        });
+  if (medicineUpdate.count !== 1) {
+    throw new AppError(
+      400,
+      `${batch.medicine.name} does not have enough total stock`
+    );
+  }
 
-        await tx.medicine.update({
-          where: {
-            id: batch.medicineId,
-          },
-          data: {
-            stock: {
-              decrement: item.quantity,
-            },
-          },
-        });
+  await tx.saleItem.create({
+    data: {
+      saleId: sale.id,
 
-        await tx.inventoryTransaction.create({
-          data: {
-            medicineId: batch.medicineId,
+      batchId: batch.id,
 
-            batchId: batch.id,
+      quantity: item.quantity,
 
-            type: "SALE",
+      costPrice: batch.purchasePrice,
 
-            quantity: item.quantity,
+      sellingPrice: batch.medicine.sellingPrice,
 
-            previousStock: batch.medicine.stock,
+      subtotal,
+    },
+  });
 
-            newStock:
-              batch.medicine.stock - item.quantity,
+  await tx.inventoryTransaction.create({
+    data: {
+      medicineId: batch.medicineId,
 
-            referenceId: sale.id,
+      batchId: batch.id,
 
-            notes: `Sale ${sale.invoiceNo}`,
-          },
-        });
-      }
+      type: "SALE",
 
+      quantity: item.quantity,
+
+      previousStock,
+
+      newStock: previousStock - item.quantity,
+
+      referenceId: sale.id,
+
+      notes: `Sale ${sale.invoiceNo}`,
+    },
+  });
+}
       return tx.sale.findUniqueOrThrow({
         where: {
           id: sale.id,

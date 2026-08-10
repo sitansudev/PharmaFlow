@@ -28,13 +28,14 @@ const saleSchema = z.object({
   ]),
 
   items: z
-    .array(
-      z.object({
-        batchId: z.string().min(1),
-        quantity: z.coerce.number().int().min(1),
-      })
-    )
-    .min(1),
+  .array(
+    z.object({
+      medicineId: z.string().min(1),
+      batchId: z.string().min(1),
+      quantity: z.coerce.number().int().min(1),
+    })
+  )
+  .min(1),
 });
 
 type SaleFormInput = z.input<typeof saleSchema>;
@@ -46,7 +47,10 @@ interface SaleFormProps {
 
 export function SaleForm({ onSuccess }: SaleFormProps) {
   const createSale = useCreateSale();
-  const { data: medicinesResponse, isLoading } = useMedicines();
+  const {
+  data: medicinesResponse,
+  isLoading,
+} = useMedicines(100);
 
   const medicines = medicinesResponse?.data ?? [];
   const [medicineSearch, setMedicineSearch] = useState("");
@@ -138,11 +142,12 @@ export function SaleForm({ onSuccess }: SaleFormProps) {
   customerId: "",
   paymentMethod: "CASH",
   items: [
-    {
-      batchId: "",
-      quantity: 1,
-    },
-  ],
+  {
+    medicineId: "",
+    batchId: "",
+    quantity: 1,
+  },
+],
 });
 
       onSuccess?.();
@@ -197,9 +202,10 @@ export function SaleForm({ onSuccess }: SaleFormProps) {
             variant="outline"
             onClick={() =>
               append({
-                batchId: "",
-                quantity: 1,
-              })
+  medicineId: "",
+  batchId: "",
+  quantity: 1,
+})
             }
           >
             + Add Medicine
@@ -211,17 +217,22 @@ export function SaleForm({ onSuccess }: SaleFormProps) {
             items[index]?.batchId ??""
           );
 
-          const medicine = selectedBatch?.medicine;
-          const batch = selectedBatch?.batch;
+          const medicine = medicines.find(
+  (item) =>
+    item.id === items[index]?.medicineId
+);
 
-          const quantity =
-            Number(items[index]?.quantity) || 0;
+const batch = medicine?.batches.find(
+  (item) =>
+    item.id === items[index]?.batchId
+);
 
-          const subtotal =
-            medicine
-              ? Number(medicine.sellingPrice) *
-                quantity
-              : 0;
+const quantity =
+  Number(items[index]?.quantity) || 0;
+
+const subtotal = medicine
+  ? Number(medicine.sellingPrice) * quantity
+  : 0;
 
           return (
             <div
@@ -254,9 +265,12 @@ export function SaleForm({ onSuccess }: SaleFormProps) {
     setOpenMedicineIndex(index);
     setMedicineSearch(value);
 
-    // Clear the selected medicine/batch
-    // when the user edits the search text.
     if (value !== medicine?.name) {
+      setValue(
+        `items.${index}.medicineId`,
+        ""
+      );
+
       setValue(
         `items.${index}.batchId`,
         ""
@@ -289,19 +303,24 @@ export function SaleForm({ onSuccess }: SaleFormProps) {
             type="button"
             className="flex w-full flex-col items-start px-3 py-2 text-left hover:bg-slate-100"
             onClick={() => {
-              setValue(
-                `items.${index}.batchId`,
-                medicineOption.batches.length === 1
-                  ? medicineOption.batches[0]?.id ?? ""
-                  : ""
-              );
+  setValue(
+    `items.${index}.medicineId`,
+    medicineOption.id
+  );
 
-              setMedicineSearch(
-                medicineOption.name
-              );
+  setValue(
+    `items.${index}.batchId`,
+    medicineOption.batches.length === 1
+      ? medicineOption.batches[0]?.id ?? ""
+      : ""
+  );
 
-              setOpenMedicineIndex(null);
-            }}
+  setMedicineSearch(
+    medicineOption.name
+  );
+
+  setOpenMedicineIndex(null);
+}}
           >
             <span className="font-medium">
               {medicineOption.name}

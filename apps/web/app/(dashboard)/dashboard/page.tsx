@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  DollarSign,
+  IndianRupee,
   Package,
   ShoppingCart,
   TriangleAlert,
@@ -51,7 +51,7 @@ export default function DashboardPage() {
           title="Total Sales"
           value={`₹${stats.totalSales}`}
           description="Overall sales"
-          icon={DollarSign}
+          icon={IndianRupee}
         />
 
         <KPICard
@@ -79,7 +79,6 @@ export default function DashboardPage() {
         <LowStockMedicines
          medicines={data.data.lowStockMedicines}
         />
-
       {/* Near Expiry */}
 
       <ExpiringMedicines

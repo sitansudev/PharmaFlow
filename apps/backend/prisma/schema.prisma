@@ -320,7 +320,7 @@ model MedicineBatch {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([medicineId, batchNo])
+  @@unique([medicineId, batchNo, supplierId])
   @@index([expiryDate])
   @@index([medicineId, expiryDate])
   @@index([medicineId, remainingQuantity])

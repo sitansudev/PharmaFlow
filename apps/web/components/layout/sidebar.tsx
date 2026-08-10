@@ -55,7 +55,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 bg-white border-r h-screen flex flex-col">
+    <aside className="flex h-full w-64 shrink-0 flex-col border-r bg-white">
       <div className="h-16 flex items-center justify-center border-b">
         <h1 className="text-2xl font-bold text-blue-600">
           PharmaFlow

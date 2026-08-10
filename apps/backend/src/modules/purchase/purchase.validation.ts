@@ -4,9 +4,10 @@ export const purchaseItemSchema = z.object({
   medicineId: z.string().cuid(),
 
   batchNo: z
-    .string()
-    .trim()
-    .min(1, "Batch number is required"),
+  .string()
+  .trim()
+  .min(1, "Batch number is required")
+  .transform((value) => value.toUpperCase()),
 
   manufacturingDate: z.coerce.date().optional(),
 
@@ -67,16 +68,16 @@ export const createPurchaseSchema = z.object({
 
     const batch = item.batchNo.toUpperCase();
 
-    if (batchNumbers.has(batch)) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message:
-          "Duplicate batch number in request.",
-        path: ["items", index, "batchNo"],
-      });
-    }
+    if (batchNumbers.has(item.batchNo)) {
+  ctx.addIssue({
+    code: z.ZodIssueCode.custom,
+    message:
+      "Duplicate batch number in request.",
+    path: ["items", index, "batchNo"],
+  });
+}
 
-    batchNumbers.add(batch);
+batchNumbers.add(item.batchNo);
   });
 });
 

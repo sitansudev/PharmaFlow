@@ -21,21 +21,23 @@ export function KPICard({
   icon: Icon,
 }: KPICardProps) {
   return (
-    <Card className="shadow-sm">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-base font-medium">
+    <Card className="overflow-hidden border shadow-sm transition-shadow hover:shadow-md">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+        <CardTitle className="min-w-0 truncate text-sm font-medium text-muted-foreground">
           {title}
         </CardTitle>
 
-        <Icon className="h-5 w-5 text-blue-600" />
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-50">
+          <Icon className="h-5 w-5 text-blue-600" />
+        </div>
       </CardHeader>
 
       <CardContent>
-        <div className="text-3xl font-bold">
+        <div className="truncate text-3xl font-bold tracking-tight">
           {value}
         </div>
 
-        <p className="mt-2 text-sm text-gray-500">
+        <p className="mt-2 truncate text-sm text-muted-foreground">
           {description}
         </p>
       </CardContent>
