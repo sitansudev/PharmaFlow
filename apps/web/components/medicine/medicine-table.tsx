@@ -121,10 +121,6 @@ export function MedicineTable({
                 Disc.
               </TableHead>
 
-              <TableHead className="w-[130px] whitespace-nowrap text-right">
-                Purchase
-              </TableHead>
-
               <TableHead className="w-[120px] whitespace-nowrap text-right">
                 MRP
               </TableHead>
@@ -266,15 +262,6 @@ export function MedicineTable({
                         latestBatch?.discount ?? 0
                       ).toFixed(2)}
                       %
-                    </TableCell>
-
-                    {/* PURCHASE */}
-
-                    <TableCell className="whitespace-nowrap text-right font-medium">
-                      ₹
-                      {Number(
-                        latestBatch?.rate ?? 0
-                      ).toFixed(2)}
                     </TableCell>
 
                     {/* MRP */}
