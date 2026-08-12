@@ -41,9 +41,36 @@ export default function SaleDetailPage() {
 
   const sale = data.data;
 
+  /*
+   * totalAmount is the final amount after discount.
+   *
+   * Therefore:
+   *
+   * Current Total = Final Total + Discount
+   */
+  const finalTotal =
+    Number(sale.totalAmount) || 0;
+
+  const discount =
+    Number(sale.discount ?? 0);
+
+  const discountPercent =
+    Number(
+      sale.discountPercent ?? 0
+    );
+
+  const currentTotal =
+    Number(
+      (
+        finalTotal + discount
+      ).toFixed(2)
+    );
+
   return (
     <div className="mx-auto max-w-5xl space-y-8">
-      {/* Header */}
+      {/* ====================================================== */}
+      {/* HEADER */}
+      {/* ====================================================== */}
 
       <div className="flex items-center justify-between">
         <div>
@@ -57,23 +84,29 @@ export default function SaleDetailPage() {
         </div>
 
         <div className="flex gap-3">
-  <Link href="/sales">
-    <Button variant="outline">
-      ← Back to Sales
-    </Button>
-  </Link>
+          <Link href="/sales">
+            <Button variant="outline">
+              ← Back to Sales
+            </Button>
+          </Link>
 
-  <Link href={`/sales/${sale.id}/bill`}>
-    <Button>
-      🧾 Print Bill
-    </Button>
-  </Link>
-</div>
+          <Link
+            href={`/sales/${sale.id}/bill`}
+          >
+            <Button>
+              🧾 Print Bill
+            </Button>
+          </Link>
+        </div>
       </div>
 
-      {/* Sale information */}
+      {/* ====================================================== */}
+      {/* SALE INFORMATION */}
+      {/* ====================================================== */}
 
       <div className="grid gap-4 md:grid-cols-4">
+        {/* Invoice */}
+
         <div className="rounded-xl border bg-white p-5">
           <p className="text-sm text-muted-foreground">
             Invoice
@@ -84,15 +117,20 @@ export default function SaleDetailPage() {
           </p>
         </div>
 
+        {/* Customer */}
+
         <div className="rounded-xl border bg-white p-5">
           <p className="text-sm text-muted-foreground">
             Customer
           </p>
 
           <p className="mt-1 font-semibold">
-            {sale.customer?.name ?? "Walk-in"}
+            {sale.customer?.name ??
+              "Walk-in"}
           </p>
         </div>
+
+        {/* Payment */}
 
         <div className="rounded-xl border bg-white p-5">
           <p className="text-sm text-muted-foreground">
@@ -104,18 +142,22 @@ export default function SaleDetailPage() {
           </p>
         </div>
 
+        {/* Grand Total */}
+
         <div className="rounded-xl border bg-white p-5">
           <p className="text-sm text-muted-foreground">
-            Total
+            Grand Total
           </p>
 
           <p className="mt-1 text-xl font-bold">
-            ₹{Number(sale.totalAmount).toFixed(2)}
+            ₹{finalTotal.toFixed(2)}
           </p>
         </div>
       </div>
 
-      {/* Items */}
+      {/* ====================================================== */}
+      {/* ITEMS */}
+      {/* ====================================================== */}
 
       <div className="overflow-hidden rounded-xl border bg-white">
         <div className="border-b p-5">
@@ -145,7 +187,7 @@ export default function SaleDetailPage() {
                 </th>
 
                 <th className="px-5 py-3 text-right">
-                  Rate
+                  MRP
                 </th>
 
                 <th className="px-5 py-3 text-right">
@@ -155,57 +197,137 @@ export default function SaleDetailPage() {
             </thead>
 
             <tbody>
-              {sale.items.map((item) => (
-                <tr
-                  key={item.id}
-                  className="border-b last:border-0"
-                >
-                  <td className="px-5 py-4 font-medium">
-                    {item.batch.medicine.name}
-                  </td>
+              {sale.items.map(
+                (item) => (
+                  <tr
+                    key={item.id}
+                    className="border-b last:border-0"
+                  >
+                    {/* Medicine */}
 
-                  <td className="px-5 py-4">
-                    {item.batch.batchNo}
-                  </td>
+                    <td className="px-5 py-4 font-medium">
+                      {
+                        item.batch
+                          .medicine
+                          .name
+                      }
+                    </td>
 
-                  <td className="px-5 py-4">
-                    {new Date(
-                      item.batch.expiryDate
-                    ).toLocaleDateString()}
-                  </td>
+                    {/* Batch */}
 
-                  <td className="px-5 py-4 text-right">
-                    {item.quantity}
-                  </td>
+                    <td className="px-5 py-4">
+                      {
+                        item.batch
+                          .batchNo
+                      }
+                    </td>
 
-                  <td className="px-5 py-4 text-right">
-                    ₹
-                    {Number(
-                      item.sellingPrice
-                    ).toFixed(2)}
-                  </td>
+                    {/* Expiry */}
 
-                  <td className="px-5 py-4 text-right font-semibold">
-                    ₹
-                    {Number(
-                      item.subtotal
-                    ).toFixed(2)}
-                  </td>
-                </tr>
-              ))}
+                    <td className="px-5 py-4">
+                      {new Date(
+                        item.batch.expiryDate
+                      ).toLocaleDateString()}
+                    </td>
+
+                    {/* Quantity */}
+
+                    <td className="px-5 py-4 text-right">
+                      {item.quantity}
+                    </td>
+
+                    {/* MRP */}
+
+                    <td className="px-5 py-4 text-right">
+                      ₹
+                      {Number(
+                        item.mrp
+                      ).toFixed(2)}
+                    </td>
+
+                    {/* Amount */}
+
+                    <td className="px-5 py-4 text-right font-semibold">
+                      ₹
+                      {Number(
+                        item.subtotal
+                      ).toFixed(2)}
+                    </td>
+                  </tr>
+                )
+              )}
             </tbody>
           </table>
         </div>
 
-        <div className="flex justify-end border-t p-5">
-          <div className="text-right">
-            <p className="text-sm text-muted-foreground">
-              Total
-            </p>
+        {/* ==================================================== */}
+        {/* TOTALS */}
+        {/* ==================================================== */}
 
-            <p className="text-2xl font-bold">
-              ₹{Number(sale.totalAmount).toFixed(2)}
-            </p>
+        <div className="border-t p-5">
+          <div className="ml-auto max-w-sm space-y-3">
+            {/* Current Total */}
+
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">
+                Current Total
+              </span>
+
+              <span className="font-medium">
+                ₹
+                {currentTotal.toFixed(
+                  2
+                )}
+              </span>
+            </div>
+
+            {/* Discount */}
+
+            {discount > 0 ? (
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">
+                  Discount
+                  {discountPercent >
+                  0
+                    ? ` (${discountPercent}%)`
+                    : ""}
+                </span>
+
+                <span className="font-medium text-red-600">
+                  - ₹
+                  {discount.toFixed(
+                    2
+                  )}
+                </span>
+              </div>
+            ) : (
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">
+                  Discount
+                </span>
+
+                <span className="font-medium">
+                  ₹0.00
+                </span>
+              </div>
+            )}
+
+            <div className="border-t pt-3" />
+
+            {/* Grand Total */}
+
+            <div className="flex justify-between">
+              <span className="text-lg font-semibold">
+                Grand Total
+              </span>
+
+              <span className="text-2xl font-bold">
+                ₹
+                {finalTotal.toFixed(
+                  2
+                )}
+              </span>
+            </div>
           </div>
         </div>
       </div>

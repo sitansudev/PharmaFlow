@@ -1,9 +1,17 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 import { medicineService } from "@/services/medicine.service";
 
+import type {
+  UpdateMedicine,
+} from "@/types/medicine";
+
 export function useUpdateMedicine() {
-  const queryClient = useQueryClient();
+  const queryClient =
+    useQueryClient();
 
   return useMutation({
     mutationFn: ({
@@ -11,8 +19,12 @@ export function useUpdateMedicine() {
       data,
     }: {
       id: string;
-      data: any;
-    }) => medicineService.update(id, data),
+      data: UpdateMedicine;
+    }) =>
+      medicineService.update(
+        id,
+        data
+      ),
 
     onSuccess: () => {
       queryClient.invalidateQueries({

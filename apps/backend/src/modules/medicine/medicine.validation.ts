@@ -1,37 +1,65 @@
 import { z } from "zod";
 
+const optionalCuid = z.preprocess(
+  (value) =>
+    value === "" || value === null
+      ? undefined
+      : value,
+  z.string().cuid().optional()
+);
+
+const optionalString = z.preprocess(
+  (value) =>
+    value === "" || value === null
+      ? undefined
+      : value,
+  z.string().trim().optional()
+);
+
 export const createMedicineSchema = z.object({
   name: z
     .string()
     .trim()
     .min(2, "Medicine name must be at least 2 characters"),
 
-  genericName: z
-    .string()
-    .trim()
-    .optional(),
+  genericName: optionalString,
 
   supplierId: z
     .string()
     .cuid("Supplier is required"),
 
-  categoryId: z
-    .string()
-    .cuid()
-    .optional(),
+  categoryId: optionalCuid,
 
   batchNo: z
     .string()
     .trim()
     .min(1, "Batch number is required"),
 
-  purchasePrice: z.coerce
-    .number()
-    .positive("Purchase price must be greater than 0"),
+  pack: z
+    .string()
+    .trim()
+    .min(1, "Pack is required"),
 
-  sellingPrice: z.coerce
+  bonus: z.coerce
     .number()
-    .positive("Selling price must be greater than 0"),
+    .int()
+    .min(0)
+    .default(0),
+
+  rate: z.coerce
+    .number()
+    .positive("Rate must be greater than 0"),
+
+  discount: z.coerce
+    .number()
+    .min(0)
+    .max(100)
+    .default(0),
+
+
+  mrp: z.coerce
+    .number()
+    .positive("MRP must be greater than 0"),
 
   stock: z.coerce
     .number()
@@ -51,28 +79,16 @@ export const createMedicineSchema = z.object({
 
   expiryDate: z.coerce.date(),
 
-  manufacturingDate: z.coerce
-    .date()
-    .optional(),
+  rackLocation: optionalString,
 
-  rackLocation: z
-    .string()
-    .trim()
-    .optional(),
-
-  barcode: z
-    .string()
-    .trim()
-    .optional(),
+  barcode: optionalString,
 });
 
 export const updateMedicineSchema =
   createMedicineSchema.partial();
 
-export type CreateMedicineDTO = z.infer<
-  typeof createMedicineSchema
->;
+export type CreateMedicineDTO =
+  z.infer<typeof createMedicineSchema>;
 
-export type UpdateMedicineDTO = z.infer<
-  typeof updateMedicineSchema
->;
+export type UpdateMedicineDTO =
+  z.infer<typeof updateMedicineSchema>;

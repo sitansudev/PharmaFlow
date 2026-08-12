@@ -4,8 +4,8 @@ import { useParams } from "next/navigation";
 import { useSale } from "@/hooks/use-sale";
 
 const PHARMACY_NAME = "CHAUDHARY MEDICAL HALL";
-const PHARMACY_ADDRESS = "YOUR ADDRESS";
-const PAN_NUMBER = "YOUR PAN";
+const PHARMACY_ADDRESS = "Karsiya Bazzar";
+const PAN_NUMBER = "300953277";
 
 export default function SaleBillPage() {
   const params = useParams<{ id: string }>();
@@ -35,6 +35,32 @@ export default function SaleBillPage() {
   }
 
   const sale = data.data;
+
+  /*
+   * totalAmount = final payable amount
+   * discount = actual discount in rupees
+   *
+   * Therefore:
+   *
+   * Current Total = totalAmount + discount
+   */
+  const finalTotal =
+    Number(sale.totalAmount) || 0;
+
+  const discount =
+    Number(sale.discount ?? 0);
+
+  const discountPercent =
+    Number(
+      sale.discountPercent ?? 0
+    );
+
+  const currentTotal =
+    Number(
+      (
+        finalTotal + discount
+      ).toFixed(2)
+    );
 
   return (
     <>
@@ -84,6 +110,7 @@ export default function SaleBillPage() {
         <section className="space-y-1 text-xs">
           <div className="flex justify-between">
             <span>Invoice</span>
+
             <span className="font-semibold">
               {sale.invoiceNo}
             </span>
@@ -91,6 +118,7 @@ export default function SaleBillPage() {
 
           <div className="flex justify-between">
             <span>Date</span>
+
             <span>
               {new Date(
                 sale.saleDate
@@ -100,8 +128,10 @@ export default function SaleBillPage() {
 
           <div className="flex justify-between">
             <span>Customer</span>
+
             <span>
-              {sale.customer?.name ?? "Walk-in"}
+              {sale.customer?.name ??
+                "Walk-in"}
             </span>
           </div>
         </section>
@@ -113,11 +143,15 @@ export default function SaleBillPage() {
         <section>
           <div className="grid grid-cols-[1fr_42px_42px_24px_52px] gap-1 text-[10px] font-bold">
             <span>Medicine</span>
+
             <span>Batch</span>
+
             <span>Expiry</span>
+
             <span className="text-right">
               Qty
             </span>
+
             <span className="text-right">
               Amount
             </span>
@@ -126,67 +160,141 @@ export default function SaleBillPage() {
           <div className="my-2 border-t border-dashed border-black" />
 
           <div className="space-y-2">
-            {sale.items.map((item) => (
-              <div
-                key={item.id}
-                className="grid grid-cols-[1fr_42px_42px_24px_52px] gap-1 text-[10px]"
-              >
-                <span className="break-words font-medium">
-                  {item.batch.medicine.name}
-                </span>
+            {sale.items.map(
+              (item) => (
+                <div
+                  key={item.id}
+                  className="grid grid-cols-[1fr_42px_42px_24px_52px] gap-1 text-[10px]"
+                >
+                  <span className="break-words font-medium">
+                    {
+                      item.batch
+                        .medicine
+                        .name
+                    }
+                  </span>
 
-                <span>
-                  {item.batch.batchNo}
-                </span>
+                  <span>
+                    {
+                      item.batch
+                        .batchNo
+                    }
+                  </span>
 
-                <span>
-                  {new Date(
-                    item.batch.expiryDate
-                  ).toLocaleDateString("en-GB", {
-                    month: "2-digit",
-                    year: "numeric",
-                  })}
-                </span>
+                  <span>
+                    {new Date(
+                      item.batch
+                        .expiryDate
+                    ).toLocaleDateString(
+                      "en-GB",
+                      {
+                        month:
+                          "2-digit",
+                        year:
+                          "numeric",
+                      }
+                    )}
+                  </span>
 
-                <span className="text-right">
-                  {item.quantity}
-                </span>
+                  <span className="text-right">
+                    {item.quantity}
+                  </span>
 
-                <span className="text-right font-semibold">
-                  ₹
-                  {Number(
-                    item.subtotal
-                  ).toFixed(2)}
-                </span>
-              </div>
-            ))}
+                  <span className="text-right font-semibold">
+                    ₹
+                    {Number(
+                      item.subtotal
+                    ).toFixed(2)}
+                  </span>
+                </div>
+              )
+            )}
           </div>
         </section>
 
         <div className="my-3 border-t border-dashed border-black" />
 
-        {/* Total */}
+        {/* Totals */}
 
         <section className="space-y-1 text-xs">
+          {/* Number of items */}
+
           <div className="flex justify-between">
             <span>Items</span>
+
             <span>
               {sale.items.reduce(
-                (total, item) =>
-                  total + item.quantity,
+                (
+                  total,
+                  item
+                ) =>
+                  total +
+                  item.quantity,
                 0
               )}
             </span>
           </div>
 
-          <div className="flex justify-between text-base font-bold">
-            <span>TOTAL</span>
+          {/* Current Total */}
+
+          <div className="flex justify-between">
+            <span>
+              Current Total
+            </span>
 
             <span>
               ₹
-              {Number(
-                sale.totalAmount
-              ).toFixed(2)}
+              {currentTotal.toFixed(
+                2
+              )}
+            </span>
+          </div>
+
+          {/* Discount */}
+
+          {discount > 0 ? (
+            <div className="flex justify-between">
+              <span>
+                Discount
+                {discountPercent >
+                0
+                  ? ` (${discountPercent}%)`
+                  : ""}
+              </span>
+
+              <span>
+                - ₹
+                {discount.toFixed(
+                  2
+                )}
+              </span>
+            </div>
+          ) : (
+            <div className="flex justify-between">
+              <span>
+                Discount
+              </span>
+
+              <span>
+                ₹0.00
+              </span>
+            </div>
+          )}
+
+          <div className="my-2 border-t border-dashed border-black" />
+
+          {/* Final Total */}
+
+          <div className="flex justify-between text-base font-bold">
+            <span>
+              TOTAL
+            </span>
+
+            <span>
+              ₹
+              {finalTotal.toFixed(
+                2
+              )}
             </span>
           </div>
         </section>
@@ -197,7 +305,9 @@ export default function SaleBillPage() {
 
         <section className="space-y-1 text-xs">
           <div className="flex justify-between">
-            <span>Payment</span>
+            <span>
+              Payment
+            </span>
 
             <span className="font-semibold">
               {sale.paymentMethod}
@@ -205,7 +315,9 @@ export default function SaleBillPage() {
           </div>
 
           <div className="flex justify-between">
-            <span>Status</span>
+            <span>
+              Status
+            </span>
 
             <span className="font-semibold">
               {sale.paymentStatus}

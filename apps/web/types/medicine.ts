@@ -12,11 +12,15 @@ export interface MedicineBatch {
   id: string;
 
   batchNo: string;
+  pack: string;
 
-  purchasePrice: string;
+  bonus: number;
+
+  rate: string;
+  discount: string;
+  mrp: string;
 
   quantity: number;
-
   remainingQuantity: number;
 
   expiryDate: string;
@@ -30,13 +34,9 @@ export interface Medicine {
   id: string;
 
   name: string;
-
   genericName: string | null;
 
-  sellingPrice: string;
-
   stock: number;
-
   minimumStock: number;
 
   unit: string;
@@ -60,3 +60,32 @@ export interface MedicineResponse {
   data: Medicine[];
   meta: PaginationMeta;
 }
+
+export interface CreateMedicine {
+  name: string;
+  genericName?: string;
+
+  supplierId: string;
+  categoryId?: string;
+
+  batchNo: string;
+  pack: string;
+
+  bonus: number;
+
+  rate: number;
+  discount: number;
+  mrp: number;
+
+  stock: number;
+  minimumStock: number;
+
+  unit: string;
+  expiryDate: string;
+
+  rackLocation?: string;
+  barcode?: string;
+}
+
+export type UpdateMedicine =
+  Partial<CreateMedicine>;

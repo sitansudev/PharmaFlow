@@ -6,6 +6,7 @@ export interface Supplier {
 export interface Medicine {
   id: string;
   name: string;
+  genericName?: string | null;
 }
 
 export interface PurchaseItem {
@@ -13,14 +14,20 @@ export interface PurchaseItem {
 
   quantity: number;
 
-  purchasePrice: string;
+  rate: string;
 
   subtotal: string;
 
   batch: {
     id: string;
     batchNo: string;
+    pack: string;
+    bonus: number;
+    rate: string;
+    discount: string;
+    mrp: string;
     expiryDate: string;
+    rackLocation?: string | null;
   };
 
   medicine: Medicine;
@@ -30,6 +37,8 @@ export interface Purchase {
   id: string;
 
   invoiceNo: string;
+
+  uniqueNumber?: string | null;
 
   purchaseDate: string;
 
@@ -48,21 +57,29 @@ export interface PurchaseResponse {
 export interface CreatePurchaseItem {
   medicineId: string;
 
+  pack: string;
+
   quantity: number;
 
-  purchasePrice: number;
+  bonus: number;
+
+  rate: number;
+
+  discount: number;
+
+  mrp: number;
 
   batchNo: string;
 
   expiryDate: string;
-
-  manufacturingDate?: string;
 
   rackLocation?: string;
 }
 
 export interface CreatePurchase {
   invoiceNo: string;
+
+  uniqueNumber?: string;
 
   supplierId: string;
 

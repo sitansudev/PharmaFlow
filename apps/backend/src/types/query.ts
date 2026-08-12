@@ -5,12 +5,11 @@ export interface ListQuery {
   search?: string;
 
   sort?:
-    | "name"
-    | "genericName"
-    | "brand"
-    | "sellingPrice"
-    | "stock"
-    | "createdAt";
+  | "name"
+  | "genericName"
+  | "brand"
+  | "stock"
+  | "createdAt";
 
   order?: "asc" | "desc";
 

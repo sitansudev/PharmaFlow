@@ -26,14 +26,14 @@ export const medicineRepository = {
   },
 
   async findAll(query: MedicineQuery) {
-    const { page, limit, skip, take } = getPagination(query);
+    const { page, limit, skip, take } =
+      getPagination(query);
 
     const orderBy = getSort(
       query,
       [
         "name",
         "genericName",
-        "sellingPrice",
         "stock",
         "createdAt",
       ] as const,
@@ -42,43 +42,44 @@ export const medicineRepository = {
 
     const where: Prisma.MedicineWhereInput = {
       ...(query.search && {
-  OR: [
-    {
-      name: {
-        contains: query.search,
-        mode: Prisma.QueryMode.insensitive,
-      },
-    },
-    {
-      genericName: {
-        contains: query.search,
-        mode: Prisma.QueryMode.insensitive,
-      },
-    },
-    {
-      batches: {
-        some: {
-          batchNo: {
-            contains: query.search,
-            mode: Prisma.QueryMode.insensitive,
-          },
-        },
-      },
-    },
-    {
-      batches: {
-        some: {
-          supplier: {
+        OR: [
+          {
             name: {
               contains: query.search,
               mode: Prisma.QueryMode.insensitive,
             },
           },
-        },
-      },
-    },
-  ],
-}),
+          {
+            genericName: {
+              contains: query.search,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+          {
+            batches: {
+              some: {
+                batchNo: {
+                  contains: query.search,
+                  mode: Prisma.QueryMode.insensitive,
+                },
+              },
+            },
+          },
+          {
+            batches: {
+              some: {
+                supplier: {
+                  name: {
+                    contains: query.search,
+                    mode: Prisma.QueryMode.insensitive,
+                  },
+                },
+              },
+            },
+          },
+        ],
+      }),
+
       ...(query.categoryId && {
         categoryId: query.categoryId,
       }),
@@ -96,29 +97,30 @@ export const medicineRepository = {
       }),
     };
 
-    const [medicines, total] = await Promise.all([
-      prisma.medicine.findMany({
-        where,
-        skip,
-        take,
-        orderBy,
-        include: {
-          category: true,
-          batches: {
-            include: {
-              supplier: true,
-            },
-            orderBy: {
-              expiryDate: "asc",
+    const [medicines, total] =
+      await Promise.all([
+        prisma.medicine.findMany({
+          where,
+          skip,
+          take,
+          orderBy,
+          include: {
+            category: true,
+            batches: {
+              include: {
+                supplier: true,
+              },
+              orderBy: {
+                expiryDate: "asc",
+              },
             },
           },
-        },
-      }),
+        }),
 
-      prisma.medicine.count({
-        where,
-      }),
-    ]);
+        prisma.medicine.count({
+          where,
+        }),
+      ]);
 
     return {
       medicines,
@@ -126,7 +128,9 @@ export const medicineRepository = {
         total,
         page,
         limit,
-        totalPages: Math.ceil(total / limit),
+        totalPages: Math.ceil(
+          total / limit
+        ),
       },
     };
   },

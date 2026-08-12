@@ -1,15 +1,22 @@
 import { z } from "zod";
 
 export const purchaseItemSchema = z.object({
-  medicineId: z.string().cuid(),
+  medicineId: z
+    .string()
+    .cuid(),
+
+  pack: z
+    .string()
+    .trim()
+    .min(1, "Pack is required"),
 
   batchNo: z
-  .string()
-  .trim()
-  .min(1, "Batch number is required")
-  .transform((value) => value.toUpperCase()),
-
-  manufacturingDate: z.coerce.date().optional(),
+    .string()
+    .trim()
+    .min(1, "Batch number is required")
+    .transform((value) =>
+      value.toUpperCase()
+    ),
 
   expiryDate: z.coerce.date(),
 
@@ -18,7 +25,23 @@ export const purchaseItemSchema = z.object({
     .int()
     .positive(),
 
-  purchasePrice: z
+  bonus: z
+    .number()
+    .int()
+    .min(0)
+    .default(0),
+
+  rate: z
+    .number()
+    .positive(),
+
+  discount: z
+    .number()
+    .min(0)
+    .max(100)
+    .default(0),
+
+  mrp: z
     .number()
     .positive(),
 
@@ -28,59 +51,70 @@ export const purchaseItemSchema = z.object({
     .optional(),
 });
 
-export const createPurchaseSchema = z.object({
-  invoiceNo: z
-    .string()
-    .trim()
-    .min(1),
+export const createPurchaseSchema = z
+  .object({
+    invoiceNo: z
+      .string()
+      .trim()
+      .min(1, "Invoice number is required"),
 
-  supplierId: z.string().cuid(),
+    uniqueNumber: z
+      .string()
+      .trim()
+      .optional(),
 
-  purchaseDate: z.coerce.date().optional(),
+    supplierId: z
+      .string()
+      .cuid(),
 
-  items: z
-    .array(purchaseItemSchema)
-    .min(1),
+    purchaseDate: z
+      .coerce
+      .date()
+      .optional(),
 
-}).superRefine((data, ctx) => {
-  const batchNumbers = new Set<string>();
+    items: z
+      .array(purchaseItemSchema)
+      .min(
+        1,
+        "At least one medicine is required"
+      ),
+  })
+  .superRefine((data, ctx) => {
+    const batchNumbers = new Set<string>();
 
-  data.items.forEach((item, index) => {
-    if (item.expiryDate <= new Date()) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Expiry date must be in the future.",
-        path: ["items", index, "expiryDate"],
-      });
-    }
+    data.items.forEach((item, index) => {
+      if (item.expiryDate <= new Date()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            "Expiry date must be in the future.",
+          path: [
+            "items",
+            index,
+            "expiryDate",
+          ],
+        });
+      }
 
-    if (
-      item.manufacturingDate &&
-      item.manufacturingDate >= item.expiryDate
-    ) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message:
-          "Manufacturing date must be before expiry date.",
-        path: ["items", index, "manufacturingDate"],
-      });
-    }
+      const batch =
+        item.batchNo.toUpperCase();
 
-    const batch = item.batchNo.toUpperCase();
+      if (batchNumbers.has(batch)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            "Duplicate batch number in request.",
+          path: [
+            "items",
+            index,
+            "batchNo",
+          ],
+        });
+      }
 
-    if (batchNumbers.has(item.batchNo)) {
-  ctx.addIssue({
-    code: z.ZodIssueCode.custom,
-    message:
-      "Duplicate batch number in request.",
-    path: ["items", index, "batchNo"],
+      batchNumbers.add(batch);
+    });
   });
-}
 
-batchNumbers.add(item.batchNo);
-  });
-});
-
-export type CreatePurchaseDTO = z.infer<
-  typeof createPurchaseSchema
->;
+export type CreatePurchaseDTO =
+  z.infer<typeof createPurchaseSchema>;

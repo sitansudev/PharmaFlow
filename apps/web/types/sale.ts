@@ -10,9 +10,13 @@ export interface Medicine {
 
 export interface MedicineBatch {
   id: string;
+
   batchNo: string;
   remainingQuantity: number;
   expiryDate: string;
+
+  rate: string;
+  mrp: string;
 
   medicine: Medicine;
 }
@@ -22,7 +26,7 @@ export interface SaleItem {
 
   quantity: number;
 
-  sellingPrice: string;
+  mrp: string;
 
   subtotal: string;
 
@@ -36,7 +40,20 @@ export interface Sale {
 
   saleDate: string;
 
+  /*
+   * Final amount after discount.
+   */
   totalAmount: string;
+
+  /*
+   * Actual discount in currency.
+   */
+  discount: string;
+
+  /*
+   * Discount percentage entered by user.
+   */
+  discountPercent: string;
 
   paymentMethod: string;
 
@@ -69,6 +86,8 @@ export interface CreateSaleInput {
   customerId?: string;
 
   paymentMethod: PaymentMethod;
+
+  discountPercent?: number;
 
   items: CreateSaleItem[];
 }

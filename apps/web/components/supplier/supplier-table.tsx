@@ -1,7 +1,7 @@
 "use client";
 
 import type { Supplier } from "@/types/supplier";
-
+import { SupplierLedgerDialog } from "./supplier-ledger-dialog";
 import { Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -88,11 +88,17 @@ export function SupplierTable({
 
               <TableCell className="text-right">
                 <div className="flex justify-end gap-2">
-                  <EditSupplierDialog
-                    supplier={supplier}
-                  />
+  <SupplierLedgerDialog
+    supplier={supplier}
+  />
 
-                  <Button
+  <EditSupplierDialog
+    supplier={supplier}
+  />
+
+  <Button
+
+                  
                     variant="destructive"
                     size="icon"
                     onClick={() =>

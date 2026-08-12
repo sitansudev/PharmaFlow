@@ -7,13 +7,12 @@ export const medicineQuerySchema = z.object({
   search: z.string().trim().optional(),
 
   sort: z.enum([
-    "name",
-    "genericName",
-    "brand",
-    "sellingPrice",
-    "stock",
-    "createdAt",
-  ]).optional(),
+  "name",
+  "genericName",
+  "brand",
+  "stock",
+  "createdAt",
+]).optional(),
 
   order: z.enum(["asc", "desc"]).optional(),
 

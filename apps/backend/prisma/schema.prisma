@@ -45,8 +45,6 @@ model Medicine {
   name        String
   genericName String?
 
-  sellingPrice Decimal @db.Decimal(10, 2)
-
   stock        Int @default(0)
   minimumStock Int @default(10)
 
@@ -61,12 +59,12 @@ model Medicine {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  barcode   String?  @unique
 
-  latestSupplierId   String?
-latestBatchNo      String?
-latestPurchasePrice Decimal? @db.Decimal(10,2)
-latestExpiryDate   DateTime?
+  barcode String? @unique
+  latestRate Decimal? @db.Decimal(10, 2)
+  latestSupplierId    String?
+  latestBatchNo       String?
+  latestExpiryDate    DateTime?
 }
 
 model Supplier {
@@ -81,8 +79,45 @@ model Supplier {
   batches   MedicineBatch[]
   purchases Purchase[]
 
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  ledgerEntries SupplierLedgerEntry[]
+}
+
+enum SupplierLedgerEntryType {
+  PURCHASE
+  PAYMENT
+}
+
+model SupplierLedgerEntry {
+  id String @id @default(cuid())
+
+  supplierId String
+  supplier   Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+
+  date DateTime @default(now())
+
+  uniqueNumber String?
+
+  invoiceNumber String
+
+  type SupplierLedgerEntryType
+
+  debit  Decimal @default(0) @db.Decimal(10, 2)
+  credit Decimal @default(0) @db.Decimal(10, 2)
+
+  paymentMethod PaymentMethod?
+
+  referenceId String?
+
+  notes String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([supplierId, date])
+  @@index([supplierId, type])
+  @@index([invoiceNumber])
 }
 
 model Purchase {
@@ -91,9 +126,9 @@ model Purchase {
   invoiceNo String @unique
 
   purchaseDate DateTime @default(now())
-
-  supplierId String
-  supplier   Supplier @relation(fields: [supplierId], references: [id])
+  uniqueNumber String?
+  supplierId   String
+  supplier     Supplier @relation(fields: [supplierId], references: [id])
 
   totalAmount Decimal @db.Decimal(10, 2)
 
@@ -116,7 +151,7 @@ model PurchaseItem {
 
   quantity Int
 
-  purchasePrice Decimal @db.Decimal(10, 2)
+  rate Decimal @db.Decimal(10, 2)
 
   subtotal Decimal @db.Decimal(10, 2)
 
@@ -132,10 +167,10 @@ model Customer {
 
   sales Sale[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  loyaltyPoints Int @default(0)
-  dueAmount     Decimal @default(0) @db.Decimal(10, 2)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  loyaltyPoints Int      @default(0)
+  dueAmount     Decimal  @default(0) @db.Decimal(10, 2)
 }
 
 enum PaymentMethod {
@@ -162,21 +197,27 @@ model Sale {
   saleDate DateTime @default(now())
 
   customerId String?
-  customer Customer? @relation(fields: [customerId], references: [id])
+  customer   Customer? @relation(fields: [customerId], references: [id])
 
-  totalAmount Decimal @db.Decimal(10,2)
+  totalAmount Decimal @db.Decimal(10, 2)
 
-  discount Decimal @db.Decimal(10,2) @default(0)
+  // Actual discount amount in currency.
+  // Example: subtotal ₹155 with 5% discount = ₹7.75
+  discount Decimal @default(0) @db.Decimal(10, 2)
 
-  tax Decimal @db.Decimal(10,2) @default(0)
+  // Discount percentage entered during sale.
+  // Example: 5.00 means 5%.
+  discountPercent Decimal @default(0) @db.Decimal(5, 2)
+
+  tax Decimal @default(0) @db.Decimal(10, 2)
 
   paymentMethod PaymentMethod
 
   paymentStatus PaymentStatus @default(PAID)
 
-  paidAmount Decimal @db.Decimal(10,2)
+  paidAmount Decimal @db.Decimal(10, 2)
 
-  balanceAmount Decimal @db.Decimal(10,2) @default(0)
+  balanceAmount Decimal @default(0) @db.Decimal(10, 2)
 
   items SaleItem[]
 
@@ -188,18 +229,18 @@ model SaleItem {
   id String @id @default(cuid())
 
   saleId String
-  sale Sale @relation(fields: [saleId], references: [id])
+  sale   Sale   @relation(fields: [saleId], references: [id])
 
   batchId String
-  batch MedicineBatch @relation(fields: [batchId], references: [id])
+  batch   MedicineBatch @relation(fields: [batchId], references: [id])
 
   quantity Int
 
-  costPrice Decimal @db.Decimal(10,2)
+  costPrice Decimal @db.Decimal(10, 2)
 
-  sellingPrice Decimal @db.Decimal(10,2)
+  mrp Decimal @db.Decimal(10, 2)
 
-  subtotal Decimal @db.Decimal(10,2)
+  subtotal Decimal @db.Decimal(10, 2)
 
   createdAt DateTime @default(now())
 }
@@ -258,8 +299,8 @@ model Notification {
 
   isRead Boolean @default(false)
 
-  createdAt DateTime @default(now())
-  isArchived Boolean @default(false)
+  createdAt  DateTime @default(now())
+  isArchived Boolean  @default(false)
 }
 
 model AuditLog {
@@ -288,7 +329,6 @@ model MedicineBatch {
   medicineId String
   medicine   Medicine @relation(fields: [medicineId], references: [id], onDelete: Cascade)
 
-  
   purchaseId String?
   purchase   Purchase? @relation(fields: [purchaseId], references: [id])
 
@@ -297,14 +337,22 @@ model MedicineBatch {
 
   batchNo String
 
-  manufacturingDate DateTime?
+  pack String
 
   expiryDate DateTime
 
-  purchasePrice Decimal @db.Decimal(10, 2)
+  bonus Int @default(0)
+
+
+  discount Decimal @default(0) @db.Decimal(5, 2)
+
+  rate Decimal @db.Decimal(10, 2)
+  mrp  Decimal @db.Decimal(10, 2)
 
   quantity Int
+
   remainingQuantity Int @default(0)
+
   rackLocation String?
 
   purchaseItems PurchaseItem[]

@@ -1,25 +1,52 @@
 import { z } from "zod";
 
-export const saleItemSchema = z.object({
-  batchId: z.string().cuid(),
+export const saleItemSchema =
+  z.object({
+    batchId: z.string().cuid(),
 
-  quantity: z.coerce.number().int().positive(),
-});
+    quantity: z
+      .coerce
+      .number()
+      .int()
+      .positive(),
+  });
 
-export const createSaleSchema = z.object({
-  invoiceNo: z.string().min(1),
+export const createSaleSchema =
+  z.object({
+    invoiceNo: z
+      .string()
+      .trim()
+      .min(1),
 
-  customerId: z.string().cuid().optional(),
+    customerId: z
+      .string()
+      .cuid()
+      .optional(),
 
-  paymentMethod: z.enum([
-    "CASH",
-    "ESEWA",
-    "FONEPAY",
-  ]),
+    paymentMethod: z.enum([
+      "CASH",
+      "ESEWA",
+      "FONEPAY",
+    ]),
 
-  items: z.array(saleItemSchema).min(1),
-});
+    /*
+     * Optional percentage discount.
+     *
+     * If omitted, discount = 0%.
+     */
+    discountPercent: z
+      .coerce
+      .number()
+      .min(0)
+      .max(100)
+      .default(0),
 
-export type CreateSaleDTO = z.infer<
-  typeof createSaleSchema
->;
+    items: z
+      .array(saleItemSchema)
+      .min(1),
+  });
+
+export type CreateSaleDTO =
+  z.infer<
+    typeof createSaleSchema
+  >;
