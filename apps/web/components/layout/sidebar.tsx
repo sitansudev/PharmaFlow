@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+
 import {
   LayoutDashboard,
   Pill,
@@ -11,7 +12,12 @@ import {
   Receipt,
   Users,
   UserRound,
+  LogOut,
 } from "lucide-react";
+
+import { useAuth } from "@/context/auth-context";
+
+import { Button } from "@/components/ui/button";
 
 const menu = [
   {
@@ -53,20 +59,40 @@ const menu = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const { user, logout } = useAuth();
+
+  function handleLogout() {
+    logout();
+    router.replace("/login");
+  }
 
   return (
     <aside className="flex h-full w-64 shrink-0 flex-col border-r bg-white">
-      <div className="h-16 flex items-center justify-center border-b">
+      {/* ====================================================== */}
+      {/* LOGO */}
+      {/* ====================================================== */}
+
+      <div className="flex h-16 items-center justify-center border-b">
         <h1 className="text-2xl font-bold text-blue-600">
           PharmaFlow
         </h1>
       </div>
 
-      <nav className="flex-1 p-4 space-y-2">
+      {/* ====================================================== */}
+      {/* NAVIGATION */}
+      {/* ====================================================== */}
+
+      <nav className="flex-1 space-y-2 overflow-y-auto p-4">
         {menu.map((item) => {
           const Icon = item.icon;
 
-          const active = pathname === item.href;
+          const active =
+            pathname === item.href ||
+            pathname.startsWith(
+              `${item.href}/`
+            );
 
           return (
             <Link
@@ -79,21 +105,42 @@ export function Sidebar() {
               }`}
             >
               <Icon size={20} />
-              {item.title}
+
+              <span>{item.title}</span>
             </Link>
           );
         })}
       </nav>
 
-      <div className="border-t p-4 flex items-center gap-3">
-        <UserRound />
+      {/* ====================================================== */}
+      {/* USER + LOGOUT */}
+      {/* ====================================================== */}
 
-        <div>
-          <p className="font-medium">Admin</p>
-          <p className="text-sm text-gray-500">
-            Pharmacist
-          </p>
+      <div className="border-t p-4">
+        <div className="mb-3 flex items-center gap-3">
+          <UserRound className="shrink-0" />
+
+          <div className="min-w-0">
+            <p className="truncate font-medium">
+              {user?.fullName ?? "Admin"}
+            </p>
+
+            <p className="truncate text-sm text-gray-500">
+              {user?.role ?? "Pharmacist"}
+            </p>
+          </div>
         </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full justify-start gap-3"
+          onClick={handleLogout}
+        >
+          <LogOut size={18} />
+
+          Logout
+        </Button>
       </div>
     </aside>
   );

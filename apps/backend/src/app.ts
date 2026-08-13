@@ -55,7 +55,18 @@ app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 // API Routes
 // ======================================
 
+// ======================================
+// Public Authentication Routes
+// ======================================
+
 app.use("/api/v1/auth", authRoutes);
+
+// ======================================
+// Protected Business Routes
+// ======================================
+
+app.use(authenticate);
+
 app.use("/api/v1/medicines", medicineRoutes);
 app.use("/api/v1/categories", categoryRoutes);
 app.use("/api/v1/suppliers", supplierRoutes);

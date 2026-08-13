@@ -1,6 +1,13 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
 import type { User } from "@/types/auth";
 
 interface AuthContextType {
@@ -9,39 +16,95 @@ interface AuthContextType {
   isLoading: boolean;
   login: (user: User, token: string) => void;
   logout: () => void;
-  setUser: React.Dispatch<React.SetStateAction<User | null>>;
+  setUser: React.Dispatch<
+    React.SetStateAction<User | null>
+  >;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext =
+  createContext<AuthContextType | null>(null);
 
 export function AuthProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [user, setUser] =
+    useState<User | null>(null);
 
+  const [isLoading, setIsLoading] =
+    useState(true);
+
+  /*
+   * Restore authentication only from the
+   * current browser session.
+   *
+   * sessionStorage is intentionally used
+   * instead of localStorage so authentication
+   * does not persist as permanent browser data.
+   */
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
-    const storedUser = localStorage.getItem("user");
+    try {
+      const token =
+        sessionStorage.getItem(
+          "accessToken"
+        );
 
-    if (token && storedUser) {
-      setUser(JSON.parse(storedUser));
+      const storedUser =
+        sessionStorage.getItem("user");
+
+      if (token && storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
+    } catch (error) {
+      console.error(
+        "Failed to restore authentication:",
+        error
+      );
+
+      sessionStorage.removeItem(
+        "accessToken"
+      );
+
+      sessionStorage.removeItem("user");
+
+      setUser(null);
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   }, []);
 
-  const login = (user: User, token: string) => {
-    localStorage.setItem("accessToken", token);
-    localStorage.setItem("user", JSON.stringify(user));
+  /*
+   * Store authentication for the current
+   * browser session only.
+   */
+  const login = (
+    user: User,
+    token: string
+  ) => {
+    sessionStorage.setItem(
+      "accessToken",
+      token
+    );
+
+    sessionStorage.setItem(
+      "user",
+      JSON.stringify(user)
+    );
+
     setUser(user);
   };
 
+  /*
+   * Completely clear the current session.
+   */
   const logout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("user");
+    sessionStorage.removeItem(
+      "accessToken"
+    );
+
+    sessionStorage.removeItem("user");
+
     setUser(null);
   };
 
@@ -57,14 +120,21 @@ export function AuthProvider({
     [user, isLoading]
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
+  const context =
+    useContext(AuthContext);
 
   if (!context) {
-    throw new Error("useAuth must be used inside AuthProvider");
+    throw new Error(
+      "useAuth must be used inside AuthProvider"
+    );
   }
 
   return context;
