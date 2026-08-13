@@ -72,10 +72,7 @@ export const createMedicineSchema = z.object({
     .min(0)
     .default(10),
 
-  unit: z
-    .string()
-    .trim()
-    .min(1, "Unit is required"),
+
 
   expiryDate: z.coerce.date(),
 
@@ -83,7 +80,23 @@ export const createMedicineSchema = z.object({
 
   barcode: optionalString,
 });
+export const quickCreateMedicineSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(
+      2,
+      "Medicine name must be at least 2 characters"
+    ),
 
+  genericName: optionalString,
+
+  categoryId: optionalCuid,
+  barcode: optionalString,
+});
+
+export type QuickCreateMedicineDTO =
+  z.infer<typeof quickCreateMedicineSchema>;
 export const updateMedicineSchema =
   createMedicineSchema.partial();
 

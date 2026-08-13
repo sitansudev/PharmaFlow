@@ -85,17 +85,23 @@ export class PurchaseService {
             item.quantity +
             item.bonus;
 
-          /*
-           * RATE is the actual purchase cost
-           * per purchased unit.
-           *
-           * Bonus units are excluded from cost.
-           */
-          const subtotal =
-            item.quantity *
-            item.rate;
 
-          totalAmount += subtotal;
+          const discountAmount =
+  (item.rate * item.discount) / 100;
+
+const netRate =
+  Number(
+    (item.rate - discountAmount).toFixed(2)
+  );
+
+const subtotal =
+  Number(
+    (item.quantity * netRate).toFixed(2)
+  );
+
+totalAmount += subtotal;
+
+
 
           /*
            * A batch is uniquely identified by:

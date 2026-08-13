@@ -38,8 +38,10 @@ export function MedicineTable({
   const deleteMedicine =
     useDeleteMedicine();
 
-  const [expandedMedicine, setExpandedMedicine] =
-    useState<string | null>(null);
+  const [
+    expandedMedicine,
+    setExpandedMedicine,
+  ] = useState<string | null>(null);
 
   async function handleDelete(id: string) {
     if (
@@ -86,26 +88,26 @@ export function MedicineTable({
   return (
     <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
       <div className="overflow-x-auto">
-        <Table className="min-w-[1500px]">
+        <Table className="min-w-[1450px]">
+          {/* ================================================== */}
+          {/* MAIN TABLE HEADER */}
+          {/* ================================================== */}
+
           <TableHeader>
             <TableRow>
               <TableHead className="w-[280px]">
                 Medicine
               </TableHead>
 
-              <TableHead className="w-[100px] whitespace-nowrap">
+              <TableHead className="w-[120px] whitespace-nowrap">
                 Pack
-              </TableHead>
-
-              <TableHead className="w-[90px] whitespace-nowrap text-center">
-                Unit
               </TableHead>
 
               <TableHead className="w-[100px] whitespace-nowrap text-center">
                 Stock
               </TableHead>
 
-              <TableHead className="w-[120px] whitespace-nowrap">
+              <TableHead className="w-[130px] whitespace-nowrap">
                 Batch
               </TableHead>
 
@@ -129,15 +131,19 @@ export function MedicineTable({
                 Bonus
               </TableHead>
 
-              <TableHead className="w-[90px] whitespace-nowrap text-center">
+              <TableHead className="w-[100px] whitespace-nowrap text-center">
                 Rack
               </TableHead>
 
-              <TableHead className="w-[130px] whitespace-nowrap text-right">
+              <TableHead className="w-[140px] whitespace-nowrap text-right">
                 Actions
               </TableHead>
             </TableRow>
           </TableHeader>
+
+          {/* ================================================== */}
+          {/* MAIN TABLE BODY */}
+          {/* ================================================== */}
 
           <TableBody>
             {medicines.map((medicine) => {
@@ -156,10 +162,14 @@ export function MedicineTable({
 
               return (
                 <Fragment key={medicine.id}>
-                  {/* Main medicine row */}
+                  {/* ============================================ */}
+                  {/* MAIN MEDICINE ROW */}
+                  {/* ============================================ */}
 
                   <TableRow className="align-middle">
-                    <TableCell>
+                    {/* MEDICINE */}
+
+                    <TableCell className="w-[280px]">
                       <div className="flex items-center gap-2">
                         {medicine.batches?.length >
                           0 && (
@@ -171,6 +181,11 @@ export function MedicineTable({
                               )
                             }
                             className="shrink-0 rounded p-1 hover:bg-muted"
+                            aria-label={
+                              expanded
+                                ? "Collapse batches"
+                                : "Expand batches"
+                            }
                           >
                             {expanded ? (
                               <ChevronDown className="h-4 w-4" />
@@ -188,18 +203,28 @@ export function MedicineTable({
                                 `/medicines/${medicine.id}`
                               )
                             }
-                            className="truncate text-left font-semibold hover:text-primary hover:underline"
+                            className="block max-w-[240px] truncate text-left font-semibold hover:text-primary hover:underline"
+                            title={
+                              medicine.name
+                            }
                           >
                             {medicine.name}
                           </button>
 
                           {medicine.genericName && (
-                            <div className="truncate text-xs text-muted-foreground">
-                              {medicine.genericName}
+                            <div
+                              className="max-w-[240px] truncate text-xs text-muted-foreground"
+                              title={
+                                medicine.genericName
+                              }
+                            >
+                              {
+                                medicine.genericName
+                              }
                             </div>
                           )}
 
-                          <div className="text-xs text-muted-foreground">
+                          <div className="max-w-[240px] truncate text-xs text-muted-foreground">
                             {medicine.category?.name ??
                               "-"}
                           </div>
@@ -207,17 +232,18 @@ export function MedicineTable({
                       </div>
                     </TableCell>
 
-                    <TableCell className="whitespace-nowrap">
-                      <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold">
-                        {latestBatch?.pack ?? "-"}
+                    {/* PACK */}
+
+                    <TableCell className="w-[120px] whitespace-nowrap">
+                      <span className="inline-flex rounded-full bg-muted px-3 py-1 text-xs font-semibold">
+                        {latestBatch?.pack ??
+                          "-"}
                       </span>
                     </TableCell>
 
-                    <TableCell className="whitespace-nowrap text-center font-medium">
-                      {medicine.unit}
-                    </TableCell>
+                    {/* STOCK */}
 
-                    <TableCell className="whitespace-nowrap text-center">
+                    <TableCell className="w-[100px] whitespace-nowrap text-center">
                       <span
                         className={`inline-flex min-w-[50px] justify-center rounded-full px-3 py-1 text-xs font-semibold ${
                           medicine.stock <=
@@ -234,11 +260,16 @@ export function MedicineTable({
                       </span>
                     </TableCell>
 
-                    <TableCell className="whitespace-nowrap font-medium">
-                      {latestBatch?.batchNo ?? "-"}
+                    {/* BATCH */}
+
+                    <TableCell className="w-[130px] whitespace-nowrap font-medium">
+                      {latestBatch?.batchNo ??
+                        "-"}
                     </TableCell>
 
-                    <TableCell className="whitespace-nowrap">
+                    {/* EXPIRY */}
+
+                    <TableCell className="w-[150px] whitespace-nowrap">
                       {latestBatch?.expiryDate
                         ? new Date(
                             latestBatch.expiryDate
@@ -248,7 +279,7 @@ export function MedicineTable({
 
                     {/* RATE */}
 
-                    <TableCell className="whitespace-nowrap text-right font-medium">
+                    <TableCell className="w-[120px] whitespace-nowrap text-right font-medium">
                       ₹
                       {Number(
                         latestBatch?.rate ?? 0
@@ -257,7 +288,7 @@ export function MedicineTable({
 
                     {/* DISCOUNT */}
 
-                    <TableCell className="whitespace-nowrap text-right">
+                    <TableCell className="w-[100px] whitespace-nowrap text-right">
                       {Number(
                         latestBatch?.discount ?? 0
                       ).toFixed(2)}
@@ -266,7 +297,7 @@ export function MedicineTable({
 
                     {/* MRP */}
 
-                    <TableCell className="whitespace-nowrap text-right font-semibold">
+                    <TableCell className="w-[120px] whitespace-nowrap text-right font-semibold">
                       ₹
                       {Number(
                         latestBatch?.mrp ?? 0
@@ -275,26 +306,28 @@ export function MedicineTable({
 
                     {/* BONUS */}
 
-                    <TableCell className="whitespace-nowrap text-center font-semibold">
-                      {latestBatch?.bonus ?? 0}
+                    <TableCell className="w-[100px] whitespace-nowrap text-center font-semibold">
+                      {latestBatch?.bonus ??
+                        0}
                     </TableCell>
 
                     {/* RACK */}
 
-                    <TableCell className="whitespace-nowrap text-center">
+                    <TableCell className="w-[100px] whitespace-nowrap text-center">
                       {latestBatch?.rackLocation ??
                         "-"}
                     </TableCell>
 
                     {/* ACTIONS */}
 
-                    <TableCell className="whitespace-nowrap text-right">
+                    <TableCell className="w-[140px] whitespace-nowrap">
                       <div className="flex justify-end gap-2">
                         <EditMedicineDialog
                           medicine={medicine}
                         />
 
                         <Button
+                          type="button"
                           variant="destructive"
                           size="icon"
                           onClick={() =>
@@ -312,15 +345,19 @@ export function MedicineTable({
                     </TableCell>
                   </TableRow>
 
-                  {/* Expanded batch details */}
+                  {/* ============================================ */}
+                  {/* EXPANDED BATCH DETAILS */}
+                  {/* ============================================ */}
 
                   {expanded && (
                     <TableRow className="bg-muted/30">
                       <TableCell
-                        colSpan={13}
+                        colSpan={11}
                         className="p-4"
                       >
                         <div className="rounded-lg border bg-white">
+                          {/* Batch header */}
+
                           <div className="border-b px-4 py-3">
                             <div className="font-semibold">
                               Batch Details
@@ -332,10 +369,12 @@ export function MedicineTable({
                             </div>
                           </div>
 
+                          {/* Batch table */}
+
                           <div className="overflow-x-auto">
-                            <table className="min-w-[1450px] w-full text-sm">
+                            <table className="w-full min-w-[1450px] text-sm">
                               <thead>
-                                <tr className="border-b">
+                                <tr className="border-b bg-muted/30">
                                   <th className="whitespace-nowrap px-4 py-3 text-left">
                                     Batch No.
                                   </th>
@@ -346,10 +385,6 @@ export function MedicineTable({
 
                                   <th className="whitespace-nowrap px-4 py-3 text-left">
                                     Pack
-                                  </th>
-
-                                  <th className="whitespace-nowrap px-4 py-3 text-center">
-                                    Unit
                                   </th>
 
                                   <th className="whitespace-nowrap px-4 py-3 text-center">
@@ -419,16 +454,38 @@ export function MedicineTable({
                                     const expired =
                                       days < 0;
 
+                                    /*
+                                     * quantity already includes
+                                     * bonus stock.
+                                     *
+                                     * Therefore:
+                                     *
+                                     * Received paid quantity
+                                     * = quantity - bonus
+                                     */
+                                    const receivedQuantity =
+                                      Math.max(
+                                        batch.quantity -
+                                          batch.bonus,
+                                        0
+                                      );
+
                                     return (
                                       <tr
-                                        key={batch.id}
+                                        key={
+                                          batch.id
+                                        }
                                         className="border-b last:border-0"
                                       >
+                                        {/* BATCH */}
+
                                         <td className="whitespace-nowrap px-4 py-3 font-medium">
                                           {
                                             batch.batchNo
                                           }
                                         </td>
+
+                                        {/* SUPPLIER */}
 
                                         <td className="whitespace-nowrap px-4 py-3">
                                           {batch
@@ -437,33 +494,39 @@ export function MedicineTable({
                                             "-"}
                                         </td>
 
-                                        <td className="whitespace-nowrap px-4 py-3">
-                                          {batch.pack}
-                                        </td>
+                                        {/* PACK */}
 
-                                        <td className="whitespace-nowrap px-4 py-3 text-center font-medium">
+                                        <td className="whitespace-nowrap px-4 py-3">
                                           {
-                                            medicine.unit
+                                            batch.pack
                                           }
                                         </td>
 
+                                        {/* RECEIVED */}
+
                                         <td className="whitespace-nowrap px-4 py-3 text-center">
-                                          {Math.max(
-                                            batch.quantity -
-                                              batch.bonus,
-                                            0
-                                          )}
+                                          {
+                                            receivedQuantity
+                                          }
                                         </td>
 
+                                        {/* BONUS */}
+
                                         <td className="whitespace-nowrap px-4 py-3 text-center font-semibold">
-                                          {batch.bonus}
+                                          {
+                                            batch.bonus
+                                          }
                                         </td>
+
+                                        {/* TOTAL QTY */}
 
                                         <td className="whitespace-nowrap px-4 py-3 text-center font-semibold">
                                           {
                                             batch.quantity
                                           }
                                         </td>
+
+                                        {/* REMAINING */}
 
                                         <td className="whitespace-nowrap px-4 py-3 text-center font-semibold">
                                           {

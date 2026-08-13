@@ -102,4 +102,23 @@ export const medicineService = {
 
     return response.data;
   },
+    async quickCreate(data: {
+    name: string;
+    genericName?: string;
+    categoryId?: string;
+
+    barcode?: string;
+  }) {
+    const response =
+      await api.post<{
+        success: boolean;
+        message: string;
+        data: Medicine;
+      }>(
+        "/medicines/quick",
+        data
+      );
+
+    return response.data;
+  },
 };

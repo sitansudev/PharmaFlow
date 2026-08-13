@@ -22,10 +22,13 @@ export interface PurchaseItem {
     id: string;
     batchNo: string;
     pack: string;
+
     bonus: number;
+
     rate: string;
     discount: string;
     mrp: string;
+
     expiryDate: string;
     rackLocation?: string | null;
   };

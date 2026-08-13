@@ -9,6 +9,7 @@ import { medicineService } from "./medicine.service.js";
 import {
   createMedicineSchema,
   updateMedicineSchema,
+  quickCreateMedicineSchema,
 } from "./medicine.validation.js";
 
 import { medicineQuerySchema } from "./medicine.query.js";
@@ -149,6 +150,32 @@ export class MedicineController {
         success: true,
         message:
           "Medicine deleted successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+    async quickCreate(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    try {
+      const data =
+        quickCreateMedicineSchema.parse(
+          req.body
+        );
+
+      const medicine =
+        await medicineService.quickCreate(
+          data
+        );
+
+      res.status(201).json({
+        success: true,
+        message:
+          "Medicine created successfully",
+        data: medicine,
       });
     } catch (error) {
       next(error);

@@ -11,6 +11,7 @@ import { medicineRepository } from "./medicine.repository.js";
 import {
   CreateMedicineDTO,
   UpdateMedicineDTO,
+  QuickCreateMedicineDTO,
 } from "./medicine.validation.js";
 
 import { AppError } from "../../shared/errors/app-error.js";
@@ -85,8 +86,7 @@ export class MedicineService {
               minimumStock:
                 data.minimumStock,
 
-              unit:
-                data.unit,
+
 
               barcode:
                 data.barcode,
@@ -279,10 +279,6 @@ export class MedicineService {
             },
           },
         },
-
-        orderBy: {
-          unit: "asc",
-        },
       });
 
     return {
@@ -389,13 +385,7 @@ export class MedicineService {
             data.genericName;
         }
 
-        if (
-          data.unit !==
-          undefined
-        ) {
-          updateData.unit =
-            data.unit;
-        }
+
 
         if (
           data.barcode !==
@@ -717,6 +707,75 @@ export class MedicineService {
     await prisma.medicine.delete({
       where: {
         id,
+      },
+    });
+  }
+    async quickCreate(
+    data: QuickCreateMedicineDTO
+  ): Promise<Medicine> {
+    const existingMedicines =
+      await prisma.medicine.findMany({
+        where: {
+          name: {
+            equals: data.name.trim(),
+            mode: "insensitive",
+          },
+        },
+
+        select: {
+          id: true,
+          name: true,
+          genericName: true,
+        },
+      });
+
+    const normalizedGeneric =
+      data.genericName?.trim().toLowerCase() ?? "";
+
+    const duplicate =
+      existingMedicines.find((medicine) => {
+        const existingGeneric =
+          medicine.genericName
+            ?.trim()
+            .toLowerCase() ?? "";
+
+        return (
+          existingGeneric ===
+          normalizedGeneric
+        );
+      });
+
+    if (duplicate) {
+      throw new AppError(
+        409,
+        `Medicine "${duplicate.name}" already exists.`
+      );
+    }
+
+    return prisma.medicine.create({
+      data: {
+        name: data.name.trim(),
+
+        genericName:
+          data.genericName?.trim() || undefined,
+
+        categoryId:
+          data.categoryId,
+
+        barcode:
+          data.barcode?.trim() || undefined,
+
+        stock: 0,
+
+        minimumStock: 10,
+
+        latestRate: null,
+
+        latestSupplierId: null,
+
+        latestBatchNo: null,
+
+        latestExpiryDate: null,
       },
     });
   }

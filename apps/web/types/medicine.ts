@@ -39,7 +39,6 @@ export interface Medicine {
   stock: number;
   minimumStock: number;
 
-  unit: string;
 
   barcode: string | null;
 
@@ -80,7 +79,6 @@ export interface CreateMedicine {
   stock: number;
   minimumStock: number;
 
-  unit: string;
   expiryDate: string;
 
   rackLocation?: string;

@@ -52,7 +52,9 @@ const schema = z.object({
    */
   rate: z.coerce
     .number()
-    .positive("Rate must be greater than 0"),
+    .positive(
+      "Rate must be greater than 0"
+    ),
 
   /*
    * Supplier discount percentage.
@@ -67,7 +69,9 @@ const schema = z.object({
    */
   mrp: z.coerce
     .number()
-    .positive("MRP must be greater than 0"),
+    .positive(
+      "MRP must be greater than 0"
+    ),
 
   /*
    * Current physical stock.
@@ -82,13 +86,12 @@ const schema = z.object({
     .int()
     .min(0),
 
-  unit: z
-    .string()
-    .min(1, "Unit is required"),
-
   expiryDate: z
     .string()
-    .min(1, "Expiry date is required"),
+    .min(
+      1,
+      "Expiry date is required"
+    ),
 
   rackLocation: z
     .string()
@@ -99,8 +102,13 @@ const schema = z.object({
     .optional(),
 });
 
-type FormInput = z.input<typeof schema>;
-type FormData = z.output<typeof schema>;
+type FormInput = z.input<
+  typeof schema
+>;
+
+type FormData = z.output<
+  typeof schema
+>;
 
 interface MedicineFormProps {
   medicine?: Medicine;
@@ -131,8 +139,13 @@ export function MedicineForm({
       errors,
       isSubmitting,
     },
-  } = useForm<FormInput, any, FormData>({
-    resolver: zodResolver(schema),
+  } = useForm<
+    FormInput,
+    any,
+    FormData
+  >({
+    resolver:
+      zodResolver(schema),
 
     defaultValues: {
       name: "",
@@ -153,8 +166,6 @@ export function MedicineForm({
       stock: 0,
       minimumStock: 10,
 
-      unit: "",
-
       expiryDate: "",
 
       rackLocation: "",
@@ -165,7 +176,8 @@ export function MedicineForm({
   /*
    * Populate form while editing.
    *
-   * Commercial values come from the latest batch.
+   * Commercial values come from
+   * the latest batch.
    */
   useEffect(() => {
     if (!medicine) {
@@ -182,7 +194,8 @@ export function MedicineForm({
         medicine.genericName ?? "",
 
       supplierId:
-        latestBatch?.supplier?.id ?? "",
+        latestBatch?.supplier?.id ??
+        "",
 
       categoryId:
         medicine.category?.id ?? "",
@@ -197,36 +210,37 @@ export function MedicineForm({
         latestBatch?.bonus ?? 0,
 
       /*
-       * Rate belongs to MedicineBatch.
+       * Rate belongs to
+       * MedicineBatch.
        */
       rate: Number(
         latestBatch?.rate ?? 0
       ),
 
       /*
-       * Discount belongs to MedicineBatch.
+       * Discount belongs to
+       * MedicineBatch.
        */
       discount: Number(
         latestBatch?.discount ?? 0
       ),
 
       /*
-       * MRP belongs to MedicineBatch.
+       * MRP belongs to
+       * MedicineBatch.
        */
       mrp: Number(
         latestBatch?.mrp ?? 0
       ),
 
       /*
-       * Medicine stock is the current
-       * aggregate stock.
+       * Medicine stock is the
+       * current aggregate stock.
        */
       stock: medicine.stock,
 
       minimumStock:
         medicine.minimumStock,
-
-      unit: medicine.unit,
 
       expiryDate:
         latestBatch?.expiryDate
@@ -238,7 +252,8 @@ export function MedicineForm({
           : "",
 
       rackLocation:
-        latestBatch?.rackLocation ?? "",
+        latestBatch?.rackLocation ??
+        "",
 
       barcode:
         medicine.barcode ?? "",
@@ -250,7 +265,8 @@ export function MedicineForm({
   ) {
     try {
       /*
-       * Convert optional empty strings to undefined.
+       * Convert optional empty strings
+       * to undefined.
        */
       const payload = {
         ...values,
@@ -300,8 +316,6 @@ export function MedicineForm({
 
           stock: 0,
           minimumStock: 10,
-
-          unit: "",
 
           expiryDate: "",
 
@@ -358,13 +372,18 @@ export function MedicineForm({
           </Label>
 
           <Input
-            {...register("genericName")}
+            {...register(
+              "genericName"
+            )}
             placeholder="Generic name"
           />
 
           {errors.genericName && (
             <p className="mt-1 text-xs text-red-500">
-              {errors.genericName.message}
+              {
+                errors.genericName
+                  .message
+              }
             </p>
           )}
         </div>
@@ -377,7 +396,9 @@ export function MedicineForm({
           </Label>
 
           <select
-            {...register("supplierId")}
+            {...register(
+              "supplierId"
+            )}
             className="h-10 w-full rounded-md border bg-background px-3"
           >
             <option value="">
@@ -398,7 +419,10 @@ export function MedicineForm({
 
           {errors.supplierId && (
             <p className="mt-1 text-xs text-red-500">
-              {errors.supplierId.message}
+              {
+                errors.supplierId
+                  .message
+              }
             </p>
           )}
         </div>
@@ -411,7 +435,9 @@ export function MedicineForm({
           </Label>
 
           <select
-            {...register("categoryId")}
+            {...register(
+              "categoryId"
+            )}
             className="h-10 w-full rounded-md border bg-background px-3"
           >
             <option value="">
@@ -432,7 +458,10 @@ export function MedicineForm({
 
           {errors.categoryId && (
             <p className="mt-1 text-xs text-red-500">
-              {errors.categoryId.message}
+              {
+                errors.categoryId
+                  .message
+              }
             </p>
           )}
         </div>
@@ -446,7 +475,7 @@ export function MedicineForm({
 
           <Input
             {...register("pack")}
-            placeholder="Strip / Bottle / Box / Vial"
+            placeholder="e.g. 10 TAB / 10 STRIP / 100 ML"
           />
 
           {errors.pack && (
@@ -454,25 +483,11 @@ export function MedicineForm({
               {errors.pack.message}
             </p>
           )}
-        </div>
 
-        {/* Unit */}
-
-        <div>
-          <Label>
-            Unit *
-          </Label>
-
-          <Input
-            {...register("unit")}
-            placeholder="e.g. Strip, Bottle, Vial"
-          />
-
-          {errors.unit && (
-            <p className="mt-1 text-xs text-red-500">
-              {errors.unit.message}
-            </p>
-          )}
+          <p className="mt-1 text-xs text-muted-foreground">
+            Defines the package, such as
+            10 TAB, 10 STRIP, 100 ML, 1 VIAL.
+          </p>
         </div>
 
         {/* Batch Number */}
@@ -483,13 +498,18 @@ export function MedicineForm({
           </Label>
 
           <Input
-            {...register("batchNo")}
+            {...register(
+              "batchNo"
+            )}
             placeholder="Batch number"
           />
 
           {errors.batchNo && (
             <p className="mt-1 text-xs text-red-500">
-              {errors.batchNo.message}
+              {
+                errors.batchNo
+                  .message
+              }
             </p>
           )}
         </div>
@@ -503,12 +523,17 @@ export function MedicineForm({
 
           <Input
             type="date"
-            {...register("expiryDate")}
+            {...register(
+              "expiryDate"
+            )}
           />
 
           {errors.expiryDate && (
             <p className="mt-1 text-xs text-red-500">
-              {errors.expiryDate.message}
+              {
+                errors.expiryDate
+                  .message
+              }
             </p>
           )}
         </div>
@@ -533,7 +558,8 @@ export function MedicineForm({
           )}
 
           <p className="mt-1 text-xs text-muted-foreground">
-            Total quantity currently available.
+            Total quantity currently
+            available.
           </p>
         </div>
 
@@ -574,12 +600,17 @@ export function MedicineForm({
             min="0"
             max="100"
             step="0.01"
-            {...register("discount")}
+            {...register(
+              "discount"
+            )}
           />
 
           {errors.discount && (
             <p className="mt-1 text-xs text-red-500">
-              {errors.discount.message}
+              {
+                errors.discount
+                  .message
+              }
             </p>
           )}
         </div>
@@ -605,7 +636,8 @@ export function MedicineForm({
           )}
 
           <p className="mt-1 text-xs text-muted-foreground">
-            Maximum retail price for this batch.
+            Maximum retail price for
+            this batch.
           </p>
         </div>
 
@@ -619,12 +651,17 @@ export function MedicineForm({
           <Input
             type="number"
             min="0"
-            {...register("minimumStock")}
+            {...register(
+              "minimumStock"
+            )}
           />
 
           {errors.minimumStock && (
             <p className="mt-1 text-xs text-red-500">
-              {errors.minimumStock.message}
+              {
+                errors.minimumStock
+                  .message
+              }
             </p>
           )}
         </div>
@@ -637,13 +674,18 @@ export function MedicineForm({
           </Label>
 
           <Input
-            {...register("rackLocation")}
+            {...register(
+              "rackLocation"
+            )}
             placeholder="e.g. R1"
           />
 
           {errors.rackLocation && (
             <p className="mt-1 text-xs text-red-500">
-              {errors.rackLocation.message}
+              {
+                errors.rackLocation
+                  .message
+              }
             </p>
           )}
         </div>
@@ -662,7 +704,10 @@ export function MedicineForm({
 
           {errors.barcode && (
             <p className="mt-1 text-xs text-red-500">
-              {errors.barcode.message}
+              {
+                errors.barcode
+                  .message
+              }
             </p>
           )}
         </div>

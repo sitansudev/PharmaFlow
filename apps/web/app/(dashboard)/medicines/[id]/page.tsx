@@ -95,7 +95,7 @@ export default function MedicineDetailsPage() {
 
       medicineId: medicine.id,
 
-      medicineUnit: medicine.unit,
+
 
       medicineStock: medicine.stock,
     }))
@@ -346,9 +346,7 @@ export default function MedicineDetailsPage() {
                         {medicine.name}
                       </td>
 
-                      <td className="whitespace-nowrap px-5 py-4 text-center">
-                        {medicine.unit}
-                      </td>
+
 
                       <td className="whitespace-nowrap px-5 py-4 text-center font-semibold">
                         {medicine.stock}
@@ -648,11 +646,7 @@ export default function MedicineDetailsPage() {
 
                                     {/* Unit */}
 
-                                    <td className="whitespace-nowrap px-4 py-4 text-center font-medium">
-                                      {
-                                        batch.medicineUnit
-                                      }
-                                    </td>
+
 
                                     {/* Purchased */}
 

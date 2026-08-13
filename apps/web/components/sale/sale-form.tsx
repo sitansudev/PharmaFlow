@@ -777,9 +777,7 @@ export function SaleForm({
                           ).toFixed(2)}
 
                           {" / "}
-                          {
-                            selectedMedicine.unit
-                          }
+
                         </>
                       )}
                     </span>

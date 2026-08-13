@@ -48,8 +48,6 @@ model Medicine {
   stock        Int @default(0)
   minimumStock Int @default(10)
 
-  unit String
-
   categoryId String?
   category   Category? @relation(fields: [categoryId], references: [id])
 
