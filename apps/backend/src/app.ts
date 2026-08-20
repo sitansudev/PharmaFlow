@@ -3,7 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import { swaggerUi, swaggerSpec } from "./config/swagger.js";
 import { errorHandler } from "./shared/errors/error-handler.js";
-
+import { prisma } from "./database/prisma.js";
 import authRoutes from "./modules/auth/auth.routes.js";
 import medicineRoutes from "./modules/medicine/medicine.routes.js";
 import categoryRoutes from "./modules/category/category.routes.js";
@@ -38,11 +38,24 @@ app.use(express.json());
 // Health Check
 // ======================================
 
-app.get("/health", (_req, res) => {
-  res.status(200).json({
-    status: "ok",
-    message: "PharmaFlow Backend Running 🚀",
-  });
+app.get("/health", async (_req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+
+    return res.status(200).json({
+      status: "ok",
+      database: "connected",
+      message: "PharmaFlow Backend Running 🚀",
+    });
+  } catch (error) {
+    console.error("HEALTH CHECK DATABASE ERROR:", error);
+
+    return res.status(503).json({
+      status: "error",
+      database: "disconnected",
+      message: "Database connection unavailable",
+    });
+  }
 });
 
 // ======================================

@@ -1,17 +1,17 @@
-$ErrorActionPreference = "Stop"
+﻿$ErrorActionPreference = "Stop"
 
 $ProjectRoot = "C:\PharmaFlow"
 
-$PostgresBin = "P:\PharmaFlow\runtime\pgsql\bin"
-$DatabaseDir = "P:\PharmaFlow\database"
-$PostgresLog = "P:\PharmaFlow\runtime\postgres.log"
-$BackupDir = "P:\PharmaFlow\backups"
+$PostgresBin = "C:\PharmaFlow\runtime\pgsql\bin"
+$DatabaseDir = "C:\PharmaFlow\database"
+$PostgresLog = "C:\PharmaFlow\runtime\postgres.log"
+$BackupDir = "C:\PharmaFlow\backups"
 
-$Node = "P:\PharmaFlow\runtime\node\node.exe"
-$BackendDir = "P:\PharmaFlow\app\backend"
+$Node = "C:\PharmaFlow\runtime\node\node.exe"
+$BackendDir = "C:\PharmaFlow\app\backend"
 $BackendServer = "$BackendDir\dist\server.js"
 
-$WebDir = "P:\PharmaFlow\app\web"
+$WebDir = "C:\PharmaFlow\apps\web\.next-new\standalone\apps\web"
 $WebServer = "$WebDir\server.js"
 
 # ------------------------------------------------------------
@@ -80,6 +80,8 @@ else {
 
 # ------------------------------------------------------------
 # Backend
+
+$env:DATABASE_URL = "postgresql://postgres:sitansu123@127.0.0.1:5432/pharmaflow"
 # ------------------------------------------------------------
 Remove-Item Env:PORT -ErrorAction SilentlyContinue
 $backend = Start-Process `
@@ -164,3 +166,5 @@ Write-Host " Frontend : http://127.0.0.1:3417"
 Write-Host " Backend  : http://127.0.0.1:5001"
 Write-Host " Database : 127.0.0.1:5432"
 Write-Host "====================================="
+
+

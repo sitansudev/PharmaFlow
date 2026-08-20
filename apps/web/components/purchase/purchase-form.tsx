@@ -75,6 +75,11 @@ const purchaseSchema = z.object({
           .min(0)
           .max(100),
 
+        ccCharge: z
+          .coerce
+          .number()
+          .min(0),
+
         mrp: z
           .coerce
           .number()
@@ -138,10 +143,6 @@ export function PurchaseForm({
   const medicineList =
     medicines?.data ?? [];
 
-  /*
-   * Newly-created medicines are kept locally
-   * until React Query refreshes the medicine list.
-   */
   const [
     locallyCreatedMedicines,
     setLocallyCreatedMedicines,
@@ -159,12 +160,6 @@ export function PurchaseForm({
     ),
   ];
 
-  /*
-   * Medicine search.
-   *
-   * Only one medicine dropdown is open
-   * at a time.
-   */
   const [
     medicineSearch,
     setMedicineSearch,
@@ -175,9 +170,6 @@ export function PurchaseForm({
     setOpenMedicineIndex,
   ] = useState<number | null>(null);
 
-  /*
-   * Quick-create medicine modal.
-   */
   const [
     showCreateMedicine,
     setShowCreateMedicine,
@@ -232,10 +224,11 @@ export function PurchaseForm({
         {
           medicineId: "",
           pack: "",
-          quantity: 1,
+          quantity: 0,
           bonus: 0,
           rate: 0,
           discount: 0,
+          ccCharge: 0,
           mrp: 0,
           batchNo: "",
           expiryDate: "",
@@ -256,39 +249,33 @@ export function PurchaseForm({
 
   const items = watch("items");
 
-  /*
-   * Calculate net purchase rate after
-   * supplier discount.
-   *
-   * Example:
-   *
-   * Rate = ₹45
-   * Discount = 5%
-   * Net Rate = ₹42.75
-   */
   function calculateNetRate(
     rate: number,
     discount: number
   ) {
-    const netRate =
-      rate -
+    const discountAmount =
       (rate * discount) / 100;
 
     return Number(
-      netRate.toFixed(2)
+      (
+        rate - discountAmount
+      ).toFixed(2)
     );
   }
 
   /*
-   * Calculate purchase item total.
+   * Item total:
    *
-   * Bonus is free stock and therefore
-   * does not affect purchase cost.
+   * Quantity × discounted rate
+   * + CC Charge
+   *
+   * CC Charge is NOT discounted.
    */
   function calculateItemTotal(
     quantity: number,
     rate: number,
-    discount: number
+    discount: number,
+    ccCharge: number
   ) {
     const netRate =
       calculateNetRate(
@@ -296,19 +283,20 @@ export function PurchaseForm({
         discount
       );
 
+    const amountAfterDiscount =
+      quantity * netRate;
+
     return Number(
       (
-        quantity * netRate
+        amountAfterDiscount +
+        ccCharge
       ).toFixed(2)
     );
   }
 
   /*
-   * Grand total.
-   *
-   * Paid quantity × discounted rate.
-   *
-   * Bonus is excluded from cost.
+   * Grand total is the sum of every
+   * medicine row total.
    */
   const grandTotal = items.reduce(
     (total, item) => {
@@ -321,22 +309,32 @@ export function PurchaseForm({
       const discount =
         Number(item.discount) || 0;
 
+      const ccCharge =
+        Number(item.ccCharge) || 0;
+
       return (
         total +
         calculateItemTotal(
           quantity,
           rate,
-          discount
+          discount,
+          ccCharge
         )
       );
     },
     0
   );
 
-  /*
-   * Open quick-create medicine modal
-   * for a specific purchase row.
-   */
+  const preRoundGrandTotal =
+    Number(
+      grandTotal.toFixed(2)
+    );
+
+  const finalGrandTotal =
+    Math.floor(
+      preRoundGrandTotal + 0.5
+    );
+
   function openCreateMedicine(
     index: number
   ) {
@@ -344,11 +342,6 @@ export function PurchaseForm({
       index
     );
 
-    /*
-     * If the user searched for something,
-     * use that search text as the default
-     * medicine name.
-     */
     setNewMedicineName(
       medicineSearch.trim()
     );
@@ -362,9 +355,6 @@ export function PurchaseForm({
     setOpenMedicineIndex(null);
   }
 
-  /*
-   * Close quick-create medicine modal.
-   */
   function closeCreateMedicine() {
     if (
       quickCreateMedicine.isPending
@@ -385,19 +375,6 @@ export function PurchaseForm({
     setNewMedicineCategoryId("");
   }
 
-  /*
-   * Create medicine master only.
-   *
-   * This does NOT create:
-   *
-   * - batch
-   * - stock
-   * - purchase
-   * - inventory transaction
-   *
-   * The normal purchase submission
-   * creates those records.
-   */
   async function handleQuickCreateMedicine() {
     const index =
       createMedicineForIndex;
@@ -434,15 +411,12 @@ export function PurchaseForm({
         await quickCreateMedicine.mutateAsync(
           {
             name,
-
             genericName:
               genericName ||
               undefined,
-
             categoryId:
               newMedicineCategoryId ||
               undefined,
-
             barcode: undefined,
           }
         );
@@ -450,10 +424,6 @@ export function PurchaseForm({
       const createdMedicine =
         response.data;
 
-      /*
-       * Keep newly-created medicine locally
-       * so it is immediately available.
-       */
       setLocallyCreatedMedicines(
         (current) => [
           ...current,
@@ -461,10 +431,6 @@ export function PurchaseForm({
         ]
       );
 
-      /*
-       * Automatically select the new medicine
-       * in the purchase row that opened the modal.
-       */
       setValue(
         `items.${index}.medicineId`,
         createdMedicine.id,
@@ -499,9 +465,6 @@ export function PurchaseForm({
     }
   }
 
-  /*
-   * Submit complete purchase.
-   */
   async function onSubmit(
     values: PurchaseFormData
   ) {
@@ -527,10 +490,11 @@ export function PurchaseForm({
           {
             medicineId: "",
             pack: "",
-            quantity: 1,
+            quantity: 0,
             bonus: 0,
             rate: 0,
             discount: 0,
+            ccCharge: 0,
             mrp: 0,
             batchNo: "",
             expiryDate: "",
@@ -562,19 +526,14 @@ export function PurchaseForm({
 
   return (
     <>
-      {/* ====================================================== */}
-      {/* PURCHASE FORM */}
-      {/* ====================================================== */}
-
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="space-y-8"
       >
-        {/* ====================================================== */}
         {/* PURCHASE INFORMATION */}
-        {/* ====================================================== */}
 
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+
           {/* Supplier */}
 
           <div>
@@ -667,21 +626,17 @@ export function PurchaseForm({
           </div>
         </div>
 
-        {/* ====================================================== */}
         {/* PURCHASE ITEMS */}
-        {/* ====================================================== */}
 
         <div className="overflow-x-auto rounded-xl border">
-          <div className="min-w-[1700px]">
+          <div className="min-w-[1850px]">
 
-            {/* ================================================== */}
             {/* TABLE HEADER */}
-            {/* ================================================== */}
 
             <div
               className="
                 grid
-                grid-cols-[2.7fr_1fr_0.8fr_0.8fr_1fr_1fr_1.1fr_1.1fr_1.1fr_1fr_1.1fr_0.8fr]
+                grid-cols-[2.7fr_1fr_0.8fr_0.8fr_1fr_1fr_1fr_1.1fr_1.1fr_1.1fr_1fr_1.1fr_0.8fr]
                 gap-3
                 border-b
                 bg-muted
@@ -715,6 +670,10 @@ export function PurchaseForm({
               </div>
 
               <div>
+                CC Charge
+              </div>
+
+              <div>
                 MRP *
               </div>
 
@@ -739,9 +698,7 @@ export function PurchaseForm({
               </div>
             </div>
 
-            {/* ================================================== */}
             {/* ITEMS */}
-            {/* ================================================== */}
 
             {fields.map(
               (field, index) => {
@@ -770,17 +727,20 @@ export function PurchaseForm({
                       ?.discount
                   ) || 0;
 
+                const ccCharge =
+                  Number(
+                    items[index]
+                      ?.ccCharge
+                  ) || 0;
+
                 const itemTotal =
                   calculateItemTotal(
                     quantity,
                     rate,
-                    discount
+                    discount,
+                    ccCharge
                   );
 
-                /*
-                 * Search medicines using the
-                 * current search text.
-                 */
                 const searchResults =
                   availableMedicines.filter(
                     (medicine) => {
@@ -813,7 +773,7 @@ export function PurchaseForm({
                     key={field.id}
                     className="
                       grid
-                      grid-cols-[2.7fr_1fr_0.8fr_0.8fr_1fr_1fr_1.1fr_1.1fr_1.1fr_1fr_1.1fr_0.8fr]
+                      grid-cols-[2.7fr_1fr_0.8fr_0.8fr_1fr_1fr_1fr_1.1fr_1.1fr_1.1fr_1fr_1.1fr_0.8fr]
                       items-start
                       gap-3
                       border-b
@@ -821,9 +781,7 @@ export function PurchaseForm({
                     "
                   >
 
-                    {/* ================================================== */}
                     {/* MEDICINE */}
-                    {/* ================================================== */}
 
                     <div className="relative">
                       <Label className="mb-1 block">
@@ -831,8 +789,6 @@ export function PurchaseForm({
                       </Label>
 
                       <div className="flex gap-2">
-
-                        {/* Medicine Search */}
 
                         <div className="relative min-w-0 flex-1">
                           <Input
@@ -872,11 +828,6 @@ export function PurchaseForm({
                                 value
                               );
 
-                              /*
-                               * Clear medicine selection
-                               * when searching for another
-                               * medicine.
-                               */
                               setValue(
                                 `items.${index}.medicineId`,
                                 "",
@@ -889,10 +840,6 @@ export function PurchaseForm({
                               );
                             }}
                           />
-
-                          {/* ============================================ */}
-                          {/* SEARCH RESULTS */}
-                          {/* ============================================ */}
 
                           {openMedicineIndex ===
                             index && (
@@ -980,10 +927,6 @@ export function PurchaseForm({
                           )}
                         </div>
 
-                        {/* ============================================ */}
-                        {/* ADD NEW MEDICINE */}
-                        {/* ============================================ */}
-
                         <Button
                           type="button"
                           variant="outline"
@@ -1008,9 +951,7 @@ export function PurchaseForm({
                       )}
                     </div>
 
-                    {/* ================================================== */}
                     {/* PACK */}
-                    {/* ================================================== */}
 
                     <div>
                       <Label className="mb-1 block">
@@ -1037,9 +978,7 @@ export function PurchaseForm({
                       )}
                     </div>
 
-                    {/* ================================================== */}
                     {/* QUANTITY */}
-                    {/* ================================================== */}
 
                     <div>
                       <Label className="mb-1 block">
@@ -1048,7 +987,7 @@ export function PurchaseForm({
 
                       <Input
                         type="number"
-                        min="1"
+                        min="0"
                         {...register(
                           `items.${index}.quantity`
                         )}
@@ -1067,9 +1006,7 @@ export function PurchaseForm({
                       )}
                     </div>
 
-                    {/* ================================================== */}
                     {/* BONUS */}
-                    {/* ================================================== */}
 
                     <div>
                       <Label className="mb-1 block">
@@ -1085,9 +1022,7 @@ export function PurchaseForm({
                       />
                     </div>
 
-                    {/* ================================================== */}
                     {/* RATE */}
-                    {/* ================================================== */}
 
                     <div>
                       <Label className="mb-1 block">
@@ -1116,9 +1051,7 @@ export function PurchaseForm({
                       )}
                     </div>
 
-                    {/* ================================================== */}
                     {/* DISCOUNT */}
-                    {/* ================================================== */}
 
                     <div>
                       <Label className="mb-1 block">
@@ -1136,9 +1069,36 @@ export function PurchaseForm({
                       />
                     </div>
 
-                    {/* ================================================== */}
+                    {/* CC CHARGE */}
+
+                    <div>
+                      <Label className="mb-1 block">
+                        CC Charge
+                      </Label>
+
+                      <Input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        {...register(
+                          `items.${index}.ccCharge`
+                        )}
+                      />
+
+                      {errors.items?.[
+                        index
+                      ]?.ccCharge && (
+                        <p className="mt-1 text-xs text-red-500">
+                          {
+                            errors.items[
+                              index
+                            ]?.ccCharge?.message
+                          }
+                        </p>
+                      )}
+                    </div>
+
                     {/* MRP */}
-                    {/* ================================================== */}
 
                     <div>
                       <Label className="mb-1 block">
@@ -1167,9 +1127,7 @@ export function PurchaseForm({
                       )}
                     </div>
 
-                    {/* ================================================== */}
                     {/* BATCH */}
-                    {/* ================================================== */}
 
                     <div>
                       <Label className="mb-1 block">
@@ -1196,9 +1154,7 @@ export function PurchaseForm({
                       )}
                     </div>
 
-                    {/* ================================================== */}
                     {/* EXPIRY */}
-                    {/* ================================================== */}
 
                     <div>
                       <Label className="mb-1 block">
@@ -1225,9 +1181,7 @@ export function PurchaseForm({
                       )}
                     </div>
 
-                    {/* ================================================== */}
                     {/* RACK */}
-                    {/* ================================================== */}
 
                     <div>
                       <Label className="mb-1 block">
@@ -1242,9 +1196,7 @@ export function PurchaseForm({
                       />
                     </div>
 
-                    {/* ================================================== */}
                     {/* TOTAL */}
-                    {/* ================================================== */}
 
                     <div>
                       <Label className="mb-1 block">
@@ -1259,9 +1211,7 @@ export function PurchaseForm({
                       </div>
                     </div>
 
-                    {/* ================================================== */}
                     {/* ACTION */}
-                    {/* ================================================== */}
 
                     <div>
                       <Label className="mb-1 block">
@@ -1289,11 +1239,9 @@ export function PurchaseForm({
           </div>
         </div>
 
-        {/* ====================================================== */}
         {/* ADD MEDICINE + GRAND TOTAL */}
-        {/* ====================================================== */}
 
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <Button
             type="button"
             variant="outline"
@@ -1301,10 +1249,11 @@ export function PurchaseForm({
               append({
                 medicineId: "",
                 pack: "",
-                quantity: 1,
+                quantity: 0,
                 bonus: 0,
                 rate: 0,
                 discount: 0,
+                ccCharge: 0,
                 mrp: 0,
                 batchNo: "",
                 expiryDate: "",
@@ -1315,15 +1264,23 @@ export function PurchaseForm({
             + Add Medicine
           </Button>
 
-          <div className="rounded-xl border bg-white px-6 py-4 text-xl font-bold shadow-sm">
-            Grand Total: ₹
-            {grandTotal.toFixed(2)}
+          <div className="rounded-xl border bg-white px-6 py-4 text-right shadow-sm">
+            <div className="text-sm font-medium text-muted-foreground">
+              Items Total
+            </div>
+
+            <div className="text-lg font-semibold">
+              ₹{grandTotal.toFixed(2)}
+            </div>
+
+            <div className="mt-2 border-t pt-2 text-xl font-bold">
+              Grand Total: ₹
+              {finalGrandTotal.toFixed(2)}
+            </div>
           </div>
         </div>
 
-        {/* ====================================================== */}
         {/* SUBMIT */}
-        {/* ====================================================== */}
 
         <div className="flex justify-end">
           <Button
@@ -1339,17 +1296,11 @@ export function PurchaseForm({
         </div>
       </form>
 
-      {/* ====================================================== */}
       {/* QUICK CREATE MEDICINE MODAL */}
-      {/* ====================================================== */}
 
       {showCreateMedicine && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-lg rounded-xl border bg-white shadow-xl">
-
-            {/* ================================================== */}
-            {/* MODAL HEADER */}
-            {/* ================================================== */}
 
             <div className="border-b px-6 py-4">
               <h2 className="text-lg font-semibold">
@@ -1363,13 +1314,7 @@ export function PurchaseForm({
               </p>
             </div>
 
-            {/* ================================================== */}
-            {/* MODAL BODY */}
-            {/* ================================================== */}
-
             <div className="space-y-5 p-6">
-
-              {/* Medicine Name */}
 
               <div className="space-y-2">
                 <Label>
@@ -1391,8 +1336,6 @@ export function PurchaseForm({
                 />
               </div>
 
-              {/* Generic Name */}
-
               <div className="space-y-2">
                 <Label>
                   Generic Name
@@ -1411,8 +1354,6 @@ export function PurchaseForm({
                   placeholder="e.g. Paracetamol"
                 />
               </div>
-
-              {/* Category */}
 
               <div className="space-y-2">
                 <Label>
@@ -1462,10 +1403,6 @@ export function PurchaseForm({
                 </select>
               </div>
             </div>
-
-            {/* ================================================== */}
-            {/* MODAL FOOTER */}
-            {/* ================================================== */}
 
             <div className="flex justify-end gap-3 border-t px-6 py-4">
 

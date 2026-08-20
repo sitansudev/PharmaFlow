@@ -18,6 +18,8 @@ export interface PurchaseItem {
 
   subtotal: string;
 
+  ccCharge: string;
+
   batch: {
     id: string;
     batchNo: string;
@@ -69,6 +71,8 @@ export interface CreatePurchaseItem {
   rate: number;
 
   discount: number;
+
+  ccCharge: number;
 
   mrp: number;
 

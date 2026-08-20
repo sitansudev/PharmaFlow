@@ -19,7 +19,7 @@ const schema = z.object({
   name: z.string().min(2, "Supplier name is required"),
   phone: z.string().min(10, "Phone number is required"),
   email: z.string().email().optional().or(z.literal("")),
-  companyName: z.string().optional(),
+  panNo: z.string().optional(),
   address: z.string().optional(),
 });
 
@@ -48,7 +48,7 @@ export function SupplierForm({
       name: "",
       phone: "",
       email: "",
-      companyName: "",
+      panNo: "",
       address: "",
     },
   });
@@ -59,7 +59,7 @@ export function SupplierForm({
         name: supplier.name,
         phone: supplier.phone,
         email: supplier.email ?? "",
-        companyName: supplier.companyName ?? "",
+        panNo: supplier.panNo ?? "",
         address: supplier.address ?? "",
       });
     }
@@ -85,34 +85,54 @@ export function SupplierForm({
       className="space-y-5"
     >
       <div className="grid grid-cols-2 gap-4">
+        {/* Supplier Name */}
+
         <div>
           <Label>Supplier Name</Label>
+
           <Input {...register("name")} />
+
           <p className="mt-1 text-xs text-red-500">
             {errors.name?.message}
           </p>
         </div>
 
+        {/* Phone */}
+
         <div>
           <Label>Phone</Label>
+
           <Input {...register("phone")} />
+
           <p className="mt-1 text-xs text-red-500">
             {errors.phone?.message}
           </p>
         </div>
 
+        {/* Email */}
+
         <div>
           <Label>Email</Label>
+
           <Input {...register("email")} />
         </div>
 
+        {/* PAN */}
+
         <div>
-          <Label>Company</Label>
-          <Input {...register("companyName")} />
+          <Label>PAN No.</Label>
+
+          <Input
+            {...register("panNo")}
+            placeholder="PAN number"
+          />
         </div>
+
+        {/* Address */}
 
         <div className="col-span-2">
           <Label>Address</Label>
+
           <Input {...register("address")} />
         </div>
       </div>
@@ -122,7 +142,9 @@ export function SupplierForm({
           type="submit"
           disabled={isSubmitting}
         >
-          {supplier ? "Update Supplier" : "Save Supplier"}
+          {supplier
+            ? "Update Supplier"
+            : "Save Supplier"}
         </Button>
       </div>
     </form>

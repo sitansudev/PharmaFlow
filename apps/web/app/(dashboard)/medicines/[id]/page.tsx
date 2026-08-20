@@ -92,11 +92,7 @@ export default function MedicineDetailsPage() {
   const batches = medicines.flatMap((medicine) =>
     (medicine.batches ?? []).map((batch) => ({
       ...batch,
-
       medicineId: medicine.id,
-
-
-
       medicineStock: medicine.stock,
     }))
   );
@@ -311,10 +307,6 @@ export default function MedicineDetailsPage() {
                   </th>
 
                   <th className="whitespace-nowrap px-5 py-3 text-center">
-                    Unit
-                  </th>
-
-                  <th className="whitespace-nowrap px-5 py-3 text-center">
                     Stock
                   </th>
 
@@ -345,8 +337,6 @@ export default function MedicineDetailsPage() {
                       <td className="whitespace-nowrap px-5 py-4 font-semibold">
                         {medicine.name}
                       </td>
-
-
 
                       <td className="whitespace-nowrap px-5 py-4 text-center font-semibold">
                         {medicine.stock}
@@ -534,10 +524,6 @@ export default function MedicineDetailsPage() {
                               </th>
 
                               <th className="whitespace-nowrap px-4 py-3 text-center">
-                                Unit
-                              </th>
-
-                              <th className="whitespace-nowrap px-4 py-3 text-center">
                                 Purchased
                               </th>
 
@@ -643,10 +629,6 @@ export default function MedicineDetailsPage() {
                                     <td className="whitespace-nowrap px-4 py-4">
                                       {batch.pack}
                                     </td>
-
-                                    {/* Unit */}
-
-
 
                                     {/* Purchased */}
 

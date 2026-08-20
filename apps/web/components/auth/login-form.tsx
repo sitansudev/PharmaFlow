@@ -55,9 +55,20 @@ export function LoginForm() {
       toast.success("Welcome back!");
 
       router.push("/dashboard");
-    } catch (error: any) {
+        } catch (error: any) {
+      console.error(
+        "LOGIN FRONTEND ERROR:",
+        error
+      );
+
+      console.error(
+        "LOGIN RESPONSE:",
+        error?.response?.data
+      );
+
       toast.error(
         error?.response?.data?.message ??
+          error?.message ??
           "Login failed"
       );
     }

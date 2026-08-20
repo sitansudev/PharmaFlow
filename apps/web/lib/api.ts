@@ -12,12 +12,16 @@ export const api = axios.create({
 
 api.interceptors.request.use(
   (config) => {
-    if (typeof window !== "undefined") {
-      const token = sessionStorage.getItem("accessToken");
+    const token =
+      typeof window !== "undefined"
+        ? sessionStorage.getItem("accessToken")
+        : null;
 
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
+    console.log("TOKEN SENT:", token);
+
+    if (token) {
+      config.headers.Authorization =
+        `Bearer ${token}`;
     }
 
     return config;

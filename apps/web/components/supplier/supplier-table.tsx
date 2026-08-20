@@ -1,14 +1,15 @@
 "use client";
 
-import type { Supplier } from "@/types/supplier";
-import { SupplierLedgerDialog } from "./supplier-ledger-dialog";
+import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-
-import { EditSupplierDialog } from "./edit-supplier-dialog";
+import type { Supplier } from "@/types/supplier";
 
 import { useDeleteSupplier } from "@/hooks/use-delete-supplier";
+
+import { Button } from "@/components/ui/button";
+import { SupplierLedgerDialog } from "./supplier-ledger-dialog";
+import { EditSupplierDialog } from "./edit-supplier-dialog";
 
 import {
   Table,
@@ -19,98 +20,163 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-interface Props {
+interface SupplierTableProps {
   suppliers: Supplier[];
 }
 
 export function SupplierTable({
   suppliers,
-}: Props) {
+}: SupplierTableProps) {
   const deleteSupplier = useDeleteSupplier();
 
-  async function handleDelete(id: string) {
+  async function handleDelete(supplier: Supplier) {
     const confirmed = window.confirm(
-      "Delete this supplier?"
+      `Are you sure you want to delete "${supplier.name}"?`
     );
 
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
-    await deleteSupplier.mutateAsync(id);
-  }
+    try {
+      await deleteSupplier.mutateAsync(
+        supplier.id
+      );
 
-  if (suppliers.length === 0) {
-    return (
-      <div className="rounded-xl border bg-white py-16 text-center">
-        <h3 className="text-lg font-semibold">
-          No suppliers found
-        </h3>
+      toast.success(
+        "Supplier deleted successfully"
+      );
+    } catch (error) {
+      console.error(
+        "DELETE SUPPLIER ERROR:",
+        error
+      );
 
-        <p className="mt-2 text-sm text-muted-foreground">
-          Add your first supplier.
-        </p>
-      </div>
-    );
+      toast.error(
+        "Failed to delete supplier"
+      );
+    }
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border bg-white">
+    <div className="overflow-x-auto rounded-lg border">
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Company</TableHead>
-            <TableHead>Phone</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead className="text-right">
-              Actions
+            <TableHead>
+              Supplier Name
+            </TableHead>
+
+            <TableHead>
+              Phone
+            </TableHead>
+
+            <TableHead>
+              Email
+            </TableHead>
+
+            <TableHead>
+              PAN No.
+            </TableHead>
+
+            <TableHead>
+              Address
+            </TableHead>
+
+            <TableHead className="text-center">
+              Ledger
+            </TableHead>
+
+            <TableHead className="text-center">
+              Edit
+            </TableHead>
+
+            <TableHead className="text-center">
+              Delete
             </TableHead>
           </TableRow>
         </TableHeader>
 
         <TableBody>
-          {suppliers.map((supplier) => (
-            <TableRow key={supplier.id}>
-              <TableCell className="font-medium">
-                {supplier.name}
+          {suppliers.length === 0 ? (
+            <TableRow>
+              <TableCell
+                colSpan={8}
+                className="h-24 text-center text-muted-foreground"
+              >
+                No suppliers found.
               </TableCell>
+            </TableRow>
+          ) : (
+            suppliers.map((supplier) => (
+              <TableRow key={supplier.id}>
+                {/* Supplier Name */}
 
-              <TableCell>
-                {supplier.companyName ?? "-"}
-              </TableCell>
+                <TableCell className="font-medium">
+                  {supplier.name}
+                </TableCell>
 
-              <TableCell>
-                {supplier.phone}
-              </TableCell>
+                {/* Phone */}
 
-              <TableCell>
-                {supplier.email ?? "-"}
-              </TableCell>
+                <TableCell>
+                  {supplier.phone}
+                </TableCell>
 
-              <TableCell className="text-right">
-                <div className="flex justify-end gap-2">
-  <SupplierLedgerDialog
-    supplier={supplier}
-  />
+                {/* Email */}
 
-  <EditSupplierDialog
-    supplier={supplier}
-  />
+                <TableCell>
+                  {supplier.email ?? "-"}
+                </TableCell>
 
-  <Button
+                {/* PAN */}
 
-                  
-                    variant="destructive"
+                <TableCell>
+                  {supplier.panNo ?? "-"}
+                </TableCell>
+
+                {/* Address */}
+
+                <TableCell>
+                  {supplier.address ?? "-"}
+                </TableCell>
+
+                {/* Ledger */}
+
+                <TableCell className="text-center">
+                  <SupplierLedgerDialog
+                    supplier={supplier}
+                  />
+                </TableCell>
+
+                {/* Edit */}
+
+                <TableCell className="text-center">
+                  <EditSupplierDialog
+                    supplier={supplier}
+                  />
+                </TableCell>
+
+                {/* Delete */}
+
+                <TableCell className="text-center">
+                  <Button
+                    type="button"
+                    variant="outline"
                     size="icon"
-                    onClick={() =>
-                      handleDelete(supplier.id)
+                    disabled={
+                      deleteSupplier.isPending
                     }
+                    onClick={() =>
+                      handleDelete(supplier)
+                    }
+                    title="Delete supplier"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          ))}
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </div>

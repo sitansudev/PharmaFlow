@@ -1,0 +1,48 @@
+2026-08-15 16:43:27.610 +0545 [13084] LOG:  starting PostgreSQL 17.10 on x86_64-windows, compiled by msvc-19.44.35227, 64-bit
+2026-08-15 16:43:27.615 +0545 [13084] LOG:  listening on IPv6 address "::1", port 5433
+2026-08-15 16:43:27.615 +0545 [13084] LOG:  listening on IPv4 address "127.0.0.1", port 5433
+2026-08-15 16:43:27.675 +0545 [9308] LOG:  database system was shut down at 2026-08-15 16:43:06 +0545
+2026-08-15 16:43:27.720 +0545 [13084] LOG:  database system is ready to accept connections
+2026-08-15 16:44:28.955 +0545 [10464] ERROR:  relation "public.user" does not exist at character 36
+2026-08-15 16:44:28.955 +0545 [10464] STATEMENT:  SELECT COUNT(*) AS user_count FROM public.User;
+2026-08-15 16:44:55.910 +0545 [2816] ERROR:  syntax error at or near "ï»¿SELECT" at character 1
+2026-08-15 16:44:55.910 +0545 [2816] STATEMENT:  ï»¿SELECT COUNT(*) AS user_count
+	FROM public."User";
+2026-08-15 16:45:12.513 +0545 [4752] ERROR:  syntax error at or near "`" at character 43
+2026-08-15 16:45:12.513 +0545 [4752] STATEMENT:  SELECT COUNT(*) AS user_count FROM public.`
+2026-08-15 16:47:20.659 +0545 [13084] LOG:  received fast shutdown request
+2026-08-15 16:47:20.665 +0545 [13084] LOG:  aborting any active transactions
+2026-08-15 16:47:20.671 +0545 [13084] LOG:  background worker "logical replication launcher" (PID 1572) exited with exit code 1
+2026-08-15 16:47:20.682 +0545 [9388] LOG:  shutting down
+2026-08-15 16:47:20.688 +0545 [9388] LOG:  checkpoint starting: shutdown immediate
+2026-08-15 16:47:22.054 +0545 [9388] LOG:  checkpoint complete: wrote 1042 buffers (6.4%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.111 s, sync=1.237 s, total=1.373 s; sync files=395, longest=0.015 s, average=0.004 s; distance=5189 kB, estimate=5189 kB; lsn=0/1A79B80, redo lsn=0/1A79B80
+2026-08-15 16:47:22.963 +0545 [13084] LOG:  database system is shut down
+2026-08-15 16:47:53.160 +0545 [6360] LOG:  starting PostgreSQL 17.10 on x86_64-windows, compiled by msvc-19.44.35227, 64-bit
+2026-08-15 16:47:53.165 +0545 [6360] LOG:  listening on IPv6 address "::1", port 5432
+2026-08-15 16:47:53.166 +0545 [6360] LOG:  listening on IPv4 address "127.0.0.1", port 5432
+2026-08-15 16:47:53.233 +0545 [5440] LOG:  database system was shut down at 2026-08-15 16:47:22 +0545
+2026-08-15 16:47:53.278 +0545 [6360] LOG:  database system is ready to accept connections
+2026-08-15 16:52:53.219 +0545 [2272] LOG:  checkpoint starting: time
+2026-08-15 16:52:55.468 +0545 [2272] LOG:  checkpoint complete: wrote 23 buffers (0.1%); 0 WAL file(s) added, 0 removed, 0 recycled; write=2.179 s, sync=0.046 s, total=2.251 s; sync files=10, longest=0.006 s, average=0.005 s; distance=40 kB, estimate=40 kB; lsn=0/1A83F28, redo lsn=0/1A83ED0
+2026-08-15 17:04:19.479 +0545 [6360] LOG:  received fast shutdown request
+2026-08-15 17:04:19.482 +0545 [7192] ERROR:  canceling statement due to user request
+2026-08-15 17:04:19.485 +0545 [6360] LOG:  aborting any active transactions
+2026-08-15 17:04:19.491 +0545 [6360] LOG:  background worker "logical replication launcher" (PID 7192) exited with exit code 1
+2026-08-15 17:04:19.509 +0545 [2272] LOG:  shutting down
+2026-08-15 17:04:19.513 +0545 [2272] LOG:  checkpoint starting: shutdown immediate
+2026-08-15 17:04:19.534 +0545 [2272] LOG:  checkpoint complete: wrote 0 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.001 s, total=0.026 s; sync files=0, longest=0.000 s, average=0.000 s; distance=0 kB, estimate=36 kB; lsn=0/1A83FD8, redo lsn=0/1A83FD8
+2026-08-15 17:04:19.558 +0545 [6360] LOG:  database system is shut down
+2026-08-15 17:08:01.917 +0545 [4176] LOG:  starting PostgreSQL 17.10 on x86_64-windows, compiled by msvc-19.44.35227, 64-bit
+2026-08-15 17:08:01.922 +0545 [4176] LOG:  listening on IPv6 address "::1", port 5432
+2026-08-15 17:08:01.922 +0545 [4176] LOG:  listening on IPv4 address "127.0.0.1", port 5432
+2026-08-15 17:08:02.156 +0545 [4896] LOG:  database system was shut down at 2026-08-15 17:04:19 +0545
+2026-08-15 17:08:02.735 +0545 [4176] LOG:  database system is ready to accept connections
+2026-08-15 17:11:16.160 +0545 [9676] LOG:  could not receive data from client: An existing connection was forcibly closed by the remote host.
+	
+2026-08-15 17:11:21.462 +0545 [4176] LOG:  received fast shutdown request
+2026-08-15 17:11:21.468 +0545 [4176] LOG:  aborting any active transactions
+2026-08-15 17:11:21.496 +0545 [4176] LOG:  background worker "logical replication launcher" (PID 260) exited with exit code 1
+2026-08-15 17:11:21.496 +0545 [4240] LOG:  shutting down
+2026-08-15 17:11:21.501 +0545 [4240] LOG:  checkpoint starting: shutdown immediate
+2026-08-15 17:11:21.538 +0545 [4240] LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.005 s, sync=0.009 s, total=0.042 s; sync files=2, longest=0.006 s, average=0.005 s; distance=0 kB, estimate=0 kB; lsn=0/1A840A0, redo lsn=0/1A840A0
+2026-08-15 17:11:21.560 +0545 [4176] LOG:  database system is shut down

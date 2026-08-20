@@ -3,7 +3,7 @@ export interface Supplier {
   name: string;
   email?: string | null;
   phone: string;
-  companyName?: string | null;
+  panNo?: string | null;
   address?: string | null;
   isActive: boolean;
   createdAt: string;
