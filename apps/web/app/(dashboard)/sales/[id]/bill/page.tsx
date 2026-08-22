@@ -314,15 +314,15 @@ export default function SaleBillPage() {
             </span>
           </div>
 
-          <div className="flex justify-between">
-            <span>
-              Status
-            </span>
+<div className="flex justify-between">
+  <span>
+    Status
+  </span>
 
-            <span className="font-semibold">
-              {sale.paymentStatus}
-            </span>
-          </div>
+  <span className="font-semibold">
+    {sale.paymentStatus}
+  </span>
+</div>
         </section>
 
         <div className="my-4 border-t border-dashed border-black" />

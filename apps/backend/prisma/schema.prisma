@@ -7,111 +7,77 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  ADMIN
-  PHARMACIST
-  CASHIER
-}
-
 model User {
-  id       String  @id @default(cuid())
-  fullName String
-  email    String  @unique
-  phone    String  @unique
-  password String
-  role     Role    @default(PHARMACIST)
-  isActive Boolean @default(true)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id        String     @id @default(cuid())
+  fullName  String
+  email     String     @unique
+  phone     String     @unique
+  password  String
+  role      Role       @default(PHARMACIST)
+  isActive  Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
   auditLogs AuditLog[]
 }
 
 model Category {
-  id          String  @id @default(cuid())
-  name        String  @unique
+  id          String     @id @default(cuid())
+  name        String     @unique
   description String?
-
-  medicines Medicine[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  medicines   Medicine[]
 }
 
 model Medicine {
-  id String @id @default(cuid())
-
-  name        String
-  genericName String?
-
-  stock        Int @default(0)
-  minimumStock Int @default(10)
-
-  categoryId String?
-  category   Category? @relation(fields: [categoryId], references: [id])
-
-  batches MedicineBatch[]
-
+  id                    String                 @id @default(cuid())
+  name                  String
+  genericName           String?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  categoryId            String?
+  stock                 Int                    @default(0)
+  minimumStock          Int                    @default(10)
+  barcode               String?                @unique
+  latestBatchNo         String?
+  latestExpiryDate      DateTime?
+  latestRate            Decimal?               @db.Decimal(10, 2)
+  latestSupplierId      String?
   inventoryTransactions InventoryTransaction[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  barcode String? @unique
-  latestRate Decimal? @db.Decimal(10, 2)
-  latestSupplierId    String?
-  latestBatchNo       String?
-  latestExpiryDate    DateTime?
+  category              Category?              @relation(fields: [categoryId], references: [id])
+  batches               MedicineBatch[]
 }
 
 model Supplier {
-  id          String  @id @default(cuid())
-  name        String
-  email       String? @unique
-  phone       String  @unique
-  address     String?
-  panNo String?
-  isActive    Boolean @default(true)
-
-  batches   MedicineBatch[]
-  purchases Purchase[]
-
+  id            String                @id @default(cuid())
+  name          String
+  email         String?               @unique
+  phone         String                @unique
+  address       String?
+  isActive      Boolean               @default(true)
   createdAt     DateTime              @default(now())
   updatedAt     DateTime              @updatedAt
+  panNo         String?
+  batches       MedicineBatch[]
+  purchases     Purchase[]
   ledgerEntries SupplierLedgerEntry[]
 }
 
-enum SupplierLedgerEntryType {
-  PURCHASE
-  PAYMENT
-}
-
 model SupplierLedgerEntry {
-  id String @id @default(cuid())
-
-  supplierId String
-  supplier   Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
-
-  date DateTime @default(now())
-
-  uniqueNumber String?
-
+  id            String                  @id @default(cuid())
+  supplierId    String
+  date          DateTime                @default(now())
+  uniqueNumber  String?
   invoiceNumber String
-
-  type SupplierLedgerEntryType
-
-  debit  Decimal @default(0) @db.Decimal(10, 2)
-  credit Decimal @default(0) @db.Decimal(10, 2)
-
+  type          SupplierLedgerEntryType
+  debit         Decimal                 @default(0) @db.Decimal(10, 2)
+  credit        Decimal                 @default(0) @db.Decimal(10, 2)
   paymentMethod PaymentMethod?
-
-  referenceId String?
-
-  notes String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  referenceId   String?
+  notes         String?
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+  supplier      Supplier                @relation(fields: [supplierId], references: [id], onDelete: Cascade)
 
   @@index([supplierId, date])
   @@index([supplierId, type])
@@ -119,58 +85,166 @@ model SupplierLedgerEntry {
 }
 
 model Purchase {
-  id String @id @default(cuid())
-
-  invoiceNo String @unique
-
-  purchaseDate DateTime @default(now())
-  uniqueNumber String?
+  id           String          @id @default(cuid())
+  invoiceNo    String          @unique
+  purchaseDate DateTime        @default(now())
   supplierId   String
-  supplier     Supplier @relation(fields: [supplierId], references: [id])
-
-  totalAmount Decimal @db.Decimal(10, 2)
-
-  items PurchaseItem[]
-
-  batches MedicineBatch[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  totalAmount  Decimal         @db.Decimal(10, 2)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  uniqueNumber String?
+  batches      MedicineBatch[]
+  supplier     Supplier        @relation(fields: [supplierId], references: [id])
+  items        PurchaseItem[]
 }
 
 model PurchaseItem {
-  id String @id @default(cuid())
-
+  id         String        @id @default(cuid())
   purchaseId String
-  purchase   Purchase @relation(fields: [purchaseId], references: [id])
-
-  batchId String
-  batch   MedicineBatch @relation(fields: [batchId], references: [id])
-
-  quantity Int
-
-  rate Decimal @db.Decimal(10, 2)
-
-  subtotal Decimal @db.Decimal(10, 2)
-
-  ccCharge Decimal @default(0) @db.Decimal(10, 2)
-
-  createdAt DateTime @default(now())
+  quantity   Int
+  rate       Decimal       @db.Decimal(10, 2)
+  subtotal   Decimal       @db.Decimal(10, 2)
+  createdAt  DateTime      @default(now())
+  batchId    String
+  ccCharge   Decimal       @default(0) @db.Decimal(10, 2)
+  batch      MedicineBatch @relation(fields: [batchId], references: [id])
+  purchase   Purchase      @relation(fields: [purchaseId], references: [id])
 }
 
 model Customer {
-  id      String  @id @default(cuid())
-  name    String
-  phone   String? @unique
-  email   String? @unique
-  address String?
-
-  sales Sale[]
-
+  id            String   @id @default(cuid())
+  name          String
+  phone         String?  @unique
+  email         String?  @unique
+  address       String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   loyaltyPoints Int      @default(0)
   dueAmount     Decimal  @default(0) @db.Decimal(10, 2)
+  sales         Sale[]
+}
+
+model Sale {
+  id              String        @id @default(cuid())
+  invoiceNo       String        @unique
+  saleDate        DateTime      @default(now())
+  customerId      String?
+  totalAmount     Decimal       @db.Decimal(10, 2)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  balanceAmount   Decimal       @default(0) @db.Decimal(10, 2)
+  discount        Decimal       @default(0) @db.Decimal(10, 2)
+  paidAmount      Decimal       @db.Decimal(10, 2)
+  paymentMethod   PaymentMethod
+  paymentStatus   PaymentStatus @default(PAID)
+  tax             Decimal       @default(0) @db.Decimal(10, 2)
+  discountPercent Decimal       @default(0) @db.Decimal(5, 2)
+  customer        Customer?     @relation(fields: [customerId], references: [id])
+  items           SaleItem[]
+}
+
+model SaleItem {
+  id        String        @id @default(cuid())
+  saleId    String
+  quantity  Int
+  mrp       Decimal       @db.Decimal(10, 2)
+  subtotal  Decimal       @db.Decimal(10, 2)
+  createdAt DateTime      @default(now())
+  batchId   String
+  costPrice Decimal       @db.Decimal(10, 2)
+  batch     MedicineBatch @relation(fields: [batchId], references: [id])
+  sale      Sale          @relation(fields: [saleId], references: [id])
+}
+
+model InventoryTransaction {
+  id            String          @id @default(cuid())
+  type          TransactionType
+  quantity      Int
+  previousStock Int
+  newStock      Int
+  referenceId   String?
+  notes         String?
+  createdAt     DateTime        @default(now())
+  medicineId    String
+  batchId       String?
+  batch         MedicineBatch?  @relation(fields: [batchId], references: [id])
+  medicine      Medicine        @relation(fields: [medicineId], references: [id])
+
+  @@index([medicineId])
+  @@index([batchId])
+  @@index([type])
+}
+
+model Notification {
+  id         String           @id @default(cuid())
+  title      String
+  message    String
+  type       NotificationType
+  isRead     Boolean          @default(false)
+  createdAt  DateTime         @default(now())
+  isArchived Boolean          @default(false)
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  entity    String
+  entityId  String
+  oldValue  Json?
+  newValue  Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id])
+
+  @@index([entity])
+  @@index([entityId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model MedicineBatch {
+  id                    String                 @id @default(cuid())
+  medicineId            String
+  batchNo               String
+  expiryDate            DateTime
+  quantity              Int
+  rackLocation          String?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  supplierId            String
+  isActive              Boolean                @default(true)
+  receivedDate          DateTime               @default(now())
+  purchaseId            String?
+  remainingQuantity     Int                    @default(0)
+  bonus                 Int                    @default(0)
+  discount              Decimal                @default(0) @db.Decimal(5, 2)
+  mrp                   Decimal                @db.Decimal(10, 2)
+  pack                  String
+  rate                  Decimal                @db.Decimal(10, 2)
+  inventoryTransactions InventoryTransaction[]
+  medicine              Medicine               @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+  purchase              Purchase?              @relation(fields: [purchaseId], references: [id])
+  supplier              Supplier               @relation(fields: [supplierId], references: [id])
+  purchaseItems         PurchaseItem[]
+  saleItems             SaleItem[]
+
+  @@unique([medicineId, batchNo, supplierId])
+  @@index([expiryDate])
+  @@index([medicineId, expiryDate])
+  @@index([medicineId, remainingQuantity])
+}
+
+enum Role {
+  ADMIN
+  PHARMACIST
+  CASHIER
+}
+
+enum SupplierLedgerEntryType {
+  PURCHASE
+  PAYMENT
 }
 
 enum PaymentMethod {
@@ -189,62 +263,6 @@ enum PaymentStatus {
   PENDING
 }
 
-model Sale {
-  id String @id @default(cuid())
-
-  invoiceNo String @unique
-
-  saleDate DateTime @default(now())
-
-  customerId String?
-  customer   Customer? @relation(fields: [customerId], references: [id])
-
-  totalAmount Decimal @db.Decimal(10, 2)
-
-  // Actual discount amount in currency.
-  // Example: subtotal ₹155 with 5% discount = ₹7.75
-  discount Decimal @default(0) @db.Decimal(10, 2)
-
-  // Discount percentage entered during sale.
-  // Example: 5.00 means 5%.
-  discountPercent Decimal @default(0) @db.Decimal(5, 2)
-
-  tax Decimal @default(0) @db.Decimal(10, 2)
-
-  paymentMethod PaymentMethod
-
-  paymentStatus PaymentStatus @default(PAID)
-
-  paidAmount Decimal @db.Decimal(10, 2)
-
-  balanceAmount Decimal @default(0) @db.Decimal(10, 2)
-
-  items SaleItem[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model SaleItem {
-  id String @id @default(cuid())
-
-  saleId String
-  sale   Sale   @relation(fields: [saleId], references: [id])
-
-  batchId String
-  batch   MedicineBatch @relation(fields: [batchId], references: [id])
-
-  quantity Int
-
-  costPrice Decimal @db.Decimal(10, 2)
-
-  mrp Decimal @db.Decimal(10, 2)
-
-  subtotal Decimal @db.Decimal(10, 2)
-
-  createdAt DateTime @default(now())
-}
-
 enum TransactionType {
   PURCHASE
   SALE
@@ -254,122 +272,9 @@ enum TransactionType {
   DAMAGED
 }
 
-model InventoryTransaction {
-  id String @id @default(cuid())
-
-  medicineId String
-  medicine   Medicine @relation(fields: [medicineId], references: [id])
-
-  batchId String?
-  batch   MedicineBatch? @relation(fields: [batchId], references: [id])
-
-  type TransactionType
-
-  quantity Int
-
-  previousStock Int
-
-  newStock Int
-
-  referenceId String?
-
-  notes String?
-
-  createdAt DateTime @default(now())
-
-  @@index([medicineId])
-  @@index([batchId])
-  @@index([type])
-}
-
 enum NotificationType {
   LOW_STOCK
   EXPIRED
   EXPIRING
   SYSTEM
-}
-
-model Notification {
-  id String @id @default(cuid())
-
-  title   String
-  message String
-
-  type NotificationType
-
-  isRead Boolean @default(false)
-
-  createdAt  DateTime @default(now())
-  isArchived Boolean  @default(false)
-}
-
-model AuditLog {
-  id        String   @id @default(cuid())
-  userId    String?
-  action    String
-  entity    String
-  entityId  String
-  oldValue  Json?
-  newValue  Json?
-  ipAddress String?
-  userAgent String?
-  createdAt DateTime @default(now())
-
-  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
-
-  @@index([entity])
-  @@index([entityId])
-  @@index([userId])
-  @@index([createdAt])
-}
-
-model MedicineBatch {
-  id String @id @default(cuid())
-
-  medicineId String
-  medicine   Medicine @relation(fields: [medicineId], references: [id], onDelete: Cascade)
-
-  purchaseId String?
-  purchase   Purchase? @relation(fields: [purchaseId], references: [id])
-
-  supplierId String
-  supplier   Supplier @relation(fields: [supplierId], references: [id])
-
-  batchNo String
-
-  pack String
-
-  expiryDate DateTime
-
-  bonus Int @default(0)
-
-
-  discount Decimal @default(0) @db.Decimal(5, 2)
-
-  rate Decimal @db.Decimal(10, 2)
-  mrp  Decimal @db.Decimal(10, 2)
-
-  quantity Int
-
-  remainingQuantity Int @default(0)
-
-  rackLocation String?
-
-  purchaseItems PurchaseItem[]
-
-  saleItems SaleItem[]
-
-  inventoryTransactions InventoryTransaction[]
-
-  isActive Boolean @default(true)
-
-  receivedDate DateTime @default(now())
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([medicineId, batchNo, supplierId])
-  @@index([expiryDate])
-  @@index([medicineId, expiryDate])
-  @@index([medicineId, remainingQuantity])
 }

@@ -19,4 +19,9 @@ router.get(
   purchaseController.getById.bind(purchaseController)
 );
 
+router.delete(
+  "/:id",
+  purchaseController.delete.bind(purchaseController)
+);
+
 export default router;

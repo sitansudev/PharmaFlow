@@ -8,7 +8,9 @@ import type {
 export const purchaseService = {
   async getAll() {
     const response =
-      await api.get<PurchaseResponse>("/purchases");
+      await api.get<PurchaseResponse>(
+        "/purchases"
+      );
 
     return response.data;
   },
@@ -16,6 +18,13 @@ export const purchaseService = {
   async create(data: CreatePurchase) {
     const response =
       await api.post("/purchases", data);
+
+    return response.data;
+  },
+
+  async delete(id: string) {
+    const response =
+      await api.delete(`/purchases/${id}`);
 
     return response.data;
   },

@@ -17,7 +17,9 @@ export class PurchaseController {
   }
 
   async getById(req: Request, res: Response): Promise<Response> {
-    const purchase = await purchaseService.getById(String(req.params.id));
+    const purchase = await purchaseService.getById(
+      String(req.params.id)
+    );
 
     return res.status(200).json({
       success: true,
@@ -34,6 +36,18 @@ export class PurchaseController {
       data: purchases,
     });
   }
+
+  async delete(req: Request, res: Response): Promise<Response> {
+    await purchaseService.delete(
+      String(req.params.id)
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Purchase deleted successfully",
+    });
+  }
 }
 
-export const purchaseController = new PurchaseController();
+export const purchaseController =
+  new PurchaseController();

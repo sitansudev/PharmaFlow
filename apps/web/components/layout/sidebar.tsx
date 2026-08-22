@@ -70,9 +70,9 @@ export function Sidebar() {
 
   return (
     <aside className="flex h-full w-64 shrink-0 flex-col border-r bg-white">
-      {/* ====================================================== */}
-      {/* LOGO */}
-      {/* ====================================================== */}
+      {/* ======================================================
+          LOGO
+      ====================================================== */}
 
       <div className="flex h-16 items-center justify-center border-b">
         <h1 className="text-2xl font-bold text-blue-600">
@@ -80,9 +80,9 @@ export function Sidebar() {
         </h1>
       </div>
 
-      {/* ====================================================== */}
-      {/* NAVIGATION */}
-      {/* ====================================================== */}
+      {/* ======================================================
+          NAVIGATION
+      ====================================================== */}
 
       <nav className="flex-1 space-y-2 overflow-y-auto p-4">
         {menu.map((item) => {
@@ -90,9 +90,7 @@ export function Sidebar() {
 
           const active =
             pathname === item.href ||
-            pathname.startsWith(
-              `${item.href}/`
-            );
+            pathname.startsWith(`${item.href}/`);
 
           return (
             <Link
@@ -112,9 +110,9 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* ====================================================== */}
-      {/* USER + LOGOUT */}
-      {/* ====================================================== */}
+      {/* ======================================================
+          USER + LOGOUT
+      ====================================================== */}
 
       <div className="border-t p-4">
         <div className="mb-3 flex items-center gap-3">

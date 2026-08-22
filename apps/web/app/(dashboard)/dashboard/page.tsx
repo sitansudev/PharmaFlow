@@ -9,8 +9,9 @@ import {
 
 import { KPICard } from "@/components/dashboard/kpi-card";
 import { ExpiringMedicines } from "@/components/dashboard/expiring-medicines";
-import { useDashboard } from "@/hooks/use-dashboard";
 import { LowStockMedicines } from "@/components/dashboard/low-stock-medicines";
+import { useDashboard } from "@/hooks/use-dashboard";
+
 export default function DashboardPage() {
   const { data, isLoading, isError } = useDashboard();
 
@@ -27,10 +28,9 @@ export default function DashboardPage() {
   }
 
   const stats = data.data.stats;
-  console.log(JSON.stringify(data.data.expiringMedicines, null, 2));
+
   return (
     <div className="mx-auto max-w-7xl space-y-8">
-
       {/* Header */}
 
       <div>
@@ -45,8 +45,7 @@ export default function DashboardPage() {
 
       {/* KPI Cards */}
 
-      <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
-
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
         <KPICard
           title="Total Sales"
           value={`₹${stats.totalSales}`}
@@ -74,17 +73,17 @@ export default function DashboardPage() {
           description="Overall purchases"
           icon={ShoppingCart}
         />
-
       </div>
-        <LowStockMedicines
-         medicines={data.data.lowStockMedicines}
-        />
+
+      <LowStockMedicines
+        medicines={data.data.lowStockMedicines}
+      />
+
       {/* Near Expiry */}
 
       <ExpiringMedicines
         medicines={data.data.expiringMedicines}
       />
-
     </div>
   );
 }

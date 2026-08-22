@@ -40,7 +40,10 @@ export const purchaseItemSchema = z.object({
     .min(0)
     .max(100)
     .default(0),
-
+  ccCharge: z
+    .number()
+    .min(0)
+    .default(0),
   mrp: z
     .number()
     .positive(),
