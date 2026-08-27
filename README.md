@@ -1,5 +1,7 @@
 # PharmaFlow
 
+[![Backend CI](https://github.com/sitansudev/PharmaFlow/actions/workflows/backend.yml/badge.svg?branch=main)](https://github.com/sitansudev/PharmaFlow/actions/workflows/backend.yml)
+
 > Pharmacy Management System for real-world pharmacy operations.
 
 PharmaFlow is a full-stack pharmacy management system designed to simplify
