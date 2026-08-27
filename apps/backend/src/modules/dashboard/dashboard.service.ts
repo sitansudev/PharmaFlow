@@ -14,11 +14,9 @@ export class DashboardService {
       totalCustomers,
       totalSales,
       totalPurchases,
-
       lowStockMedicines,
       expiringBatches,
       expiredBatches,
-
       recentSales,
       recentPurchases,
     ] = await Promise.all([
@@ -48,9 +46,6 @@ export class DashboardService {
             lte: 10,
           },
         },
-        include: {
-          category: true,
-        },
         orderBy: {
           stock: "asc",
         },
@@ -67,12 +62,7 @@ export class DashboardService {
           },
         },
         include: {
-          medicine: {
-            include: {
-              category: true,
-            },
-          },
-          supplier: true,
+          medicine: true,
         },
         orderBy: {
           expiryDate: "asc",
@@ -89,30 +79,12 @@ export class DashboardService {
           },
         },
         include: {
-
-    medicine: {
-
-      select: {
-
-        id: true,
-
-        name: true,
-
-        stock: true,
-
-      },
-
-    },
-
-  },
-
-  orderBy: {
-
-    expiryDate: "asc",
-
-  },
-
-}),
+          medicine: true,
+        },
+        orderBy: {
+          expiryDate: "asc",
+        },
+      }),
 
       prisma.sale.findMany({
         orderBy: {
@@ -135,6 +107,14 @@ export class DashboardService {
       }),
     ]);
 
+    const dashboardTotalSales = Math.round(
+      Number(totalSales._sum.totalAmount) || 0
+    );
+
+    const dashboardTotalPurchases = Math.round(
+      Number(totalPurchases._sum.totalAmount) || 0
+    );
+
     return {
       stats: {
         totalMedicines,
@@ -142,31 +122,40 @@ export class DashboardService {
         totalSuppliers,
         totalCustomers,
 
-        totalSales: totalSales._sum.totalAmount ?? 0,
-        totalPurchases: totalPurchases._sum.totalAmount ?? 0,
+        totalSales: dashboardTotalSales,
+
+        totalPurchases: dashboardTotalPurchases,
 
         lowStockCount: lowStockMedicines.length,
+
         expiringCount: expiringBatches.length,
+
         expiredCount: expiredBatches.length,
       },
 
-      lowStockMedicines,
+      lowStockMedicines: lowStockMedicines.map((medicine) => ({
+        id: medicine.id,
+        name: medicine.name,
+        batchNo: "-",
+        stock: medicine.stock,
+        expiryDate: "",
+      })),
 
       expiringMedicines: expiringBatches.map((batch) => ({
-  id: batch.id,
-  name: batch.medicine.name,
-  batchNo: batch.batchNo,
-  stock: batch.medicine.stock,
-  expiryDate: batch.expiryDate,
-})),
+        id: batch.id,
+        name: batch.medicine.name,
+        batchNo: batch.batchNo,
+        stock: batch.remainingQuantity,
+        expiryDate: batch.expiryDate.toISOString(),
+      })),
 
-expiredMedicines: expiredBatches.map((batch) => ({
-  id: batch.id,
-  name: batch.medicine.name,
-  batchNo: batch.batchNo,
-  stock: batch.medicine.stock,
-  expiryDate: batch.expiryDate,
-})),
+      expiredMedicines: expiredBatches.map((batch) => ({
+        id: batch.id,
+        name: batch.medicine.name,
+        batchNo: batch.batchNo,
+        stock: batch.remainingQuantity,
+        expiryDate: batch.expiryDate.toISOString(),
+      })),
 
       recentSales,
 

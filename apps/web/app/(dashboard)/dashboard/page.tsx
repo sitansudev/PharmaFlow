@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   IndianRupee,
@@ -13,13 +13,19 @@ import { LowStockMedicines } from "@/components/dashboard/low-stock-medicines";
 import { useDashboard } from "@/hooks/use-dashboard";
 
 export default function DashboardPage() {
-  const { data, isLoading, isError } = useDashboard();
+  const { data, isLoading, isError, error } = useDashboard();
 
   if (isLoading) {
-    return <div className="p-8">Loading Dashboard...</div>;
+    return (
+      <div className="p-8">
+        Loading Dashboard...
+      </div>
+    );
   }
 
   if (isError || !data) {
+    console.error(error);
+
     return (
       <div className="p-8 text-red-500">
         Failed to load dashboard.
@@ -27,12 +33,22 @@ export default function DashboardPage() {
     );
   }
 
-  const stats = data.data.stats;
+  const dashboardData = data.data;
+
+  if (!dashboardData) {
+    return (
+      <div className="p-8 text-red-500">
+        Invalid dashboard response.
+      </div>
+    );
+  }
+
+  const stats = dashboardData.stats;
 
   return (
     <div className="mx-auto max-w-7xl space-y-8">
-      {/* Header */}
 
+      {/* Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">
           Dashboard
@@ -43,15 +59,17 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* KPI Cards */}
 
+      {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
+
         <KPICard
           title="Total Sales"
           value={`₹${stats.totalSales}`}
           description="Overall sales"
           icon={IndianRupee}
         />
+
 
         <KPICard
           title="Medicines"
@@ -60,6 +78,7 @@ export default function DashboardPage() {
           icon={Package}
         />
 
+
         <KPICard
           title="Low Stock"
           value={stats.lowStockCount}
@@ -67,23 +86,28 @@ export default function DashboardPage() {
           icon={TriangleAlert}
         />
 
+
         <KPICard
           title="Purchases"
           value={`₹${stats.totalPurchases}`}
           description="Overall purchases"
           icon={ShoppingCart}
         />
+
       </div>
 
+
+      {/* Low Stock Medicines */}
       <LowStockMedicines
-        medicines={data.data.lowStockMedicines}
+        medicines={dashboardData.lowStockMedicines}
       />
 
-      {/* Near Expiry */}
 
+      {/* Near Expiry Medicines */}
       <ExpiringMedicines
-        medicines={data.data.expiringMedicines}
+        medicines={dashboardData.expiringMedicines}
       />
+
     </div>
   );
 }

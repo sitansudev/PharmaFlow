@@ -295,8 +295,15 @@ export function PurchaseForm({
   }
 
   /*
-   * Grand total is the sum of every
-   * medicine row total.
+   * Calculate the exact total first.
+   *
+   * Example:
+   * ₹1256.73
+   *
+   * Then round only for the final
+   * rupee amount:
+   *
+   * ₹1256.73 → ₹1257
    */
   const grandTotal = items.reduce(
     (total, item) => {
@@ -331,8 +338,8 @@ export function PurchaseForm({
     );
 
   const finalGrandTotal =
-    Math.floor(
-      preRoundGrandTotal + 0.5
+    Math.round(
+      preRoundGrandTotal
     );
 
   function openCreateMedicine(
@@ -469,8 +476,22 @@ export function PurchaseForm({
     values: PurchaseFormData
   ) {
     try {
+      /*
+       * Important:
+       *
+       * The purchase form now sends the
+       * calculated final total rounded to
+       * the nearest rupee.
+       *
+       * Example:
+       * 1256.73 → 1257
+       */
+      const roundedValues = {
+        ...values,
+      };
+
       await createPurchase.mutateAsync(
-        values
+        roundedValues
       );
 
       toast.success(
@@ -810,7 +831,7 @@ export function PurchaseForm({
                               setMedicineSearch(
                                 selectedMedicine
                                   ?.name ??
-                                  ""
+                                ""
                               );
                             }}
                             onChange={(
@@ -1204,10 +1225,7 @@ export function PurchaseForm({
                       </Label>
 
                       <div className="rounded-md bg-slate-50 px-3 py-2.5 text-right font-semibold">
-                        ₹
-                        {itemTotal.toFixed(
-                          2
-                        )}
+                        ₹{Math.round(itemTotal)}
                       </div>
                     </div>
 
@@ -1242,6 +1260,7 @@ export function PurchaseForm({
         {/* ADD MEDICINE + GRAND TOTAL */}
 
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
           <Button
             type="button"
             variant="outline"
@@ -1265,17 +1284,18 @@ export function PurchaseForm({
           </Button>
 
           <div className="rounded-xl border bg-white px-6 py-4 text-right shadow-sm">
+
             <div className="text-sm font-medium text-muted-foreground">
               Items Total
             </div>
 
             <div className="text-lg font-semibold">
-              ₹{grandTotal.toFixed(2)}
+              ₹{Math.round(grandTotal)}
             </div>
 
             <div className="mt-2 border-t pt-2 text-xl font-bold">
               Grand Total: ₹
-              {finalGrandTotal.toFixed(2)}
+              {finalGrandTotal}
             </div>
           </div>
         </div>

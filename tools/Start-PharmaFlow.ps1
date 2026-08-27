@@ -2,16 +2,25 @@
 
 $ProjectRoot = "C:\PharmaFlow"
 
-$PostgresBin = "C:\PharmaFlow\runtime\pgsql\bin"
-$DatabaseDir = "C:\PharmaFlow\database"
-$PostgresLog = "C:\PharmaFlow\runtime\postgres.log"
-$BackupDir = "C:\PharmaFlow\backups"
+$PostgresBin = "$ProjectRoot\runtime\pgsql\bin"
+$DatabaseDir = "$ProjectRoot\database"
+$PostgresLog = "$ProjectRoot\runtime\postgres.log"
+$BackupDir = "$ProjectRoot\backups"
 
-$Node = "C:\PharmaFlow\runtime\node\node.exe"
-$BackendDir = "C:\PharmaFlow\app\backend"
+$Node = "$ProjectRoot\runtime\node\node.exe"
+
+# ------------------------------------------------------------
+# Backend
+# ------------------------------------------------------------
+
+$BackendDir = "$ProjectRoot\apps\backend"
 $BackendServer = "$BackendDir\dist\server.js"
 
-$WebDir = "C:\PharmaFlow\apps\web\.next-new\standalone\apps\web"
+# ------------------------------------------------------------
+# Frontend - Next.js standalone
+# ------------------------------------------------------------
+
+$WebDir = "$ProjectRoot\apps\web\.next-new\standalone\apps\web"
 $WebServer = "$WebDir\server.js"
 
 # ------------------------------------------------------------
@@ -19,7 +28,7 @@ $WebServer = "$WebDir\server.js"
 # ------------------------------------------------------------
 
 if (-not (Test-Path "$PostgresBin\pg_ctl.exe")) {
-    throw "PharmaFlow SSD not found."
+    throw "PharmaFlow PostgreSQL runtime not found."
 }
 
 & "$PostgresBin\pg_ctl.exe" -D $DatabaseDir status *> $null
@@ -37,7 +46,10 @@ if ($LASTEXITCODE -ne 0) {
     }
 }
 
+# ------------------------------------------------------------
 # Wait for PostgreSQL
+# ------------------------------------------------------------
+
 for ($i = 0; $i -lt 30; $i++) {
     Start-Sleep -Seconds 1
 
@@ -80,10 +92,16 @@ else {
 
 # ------------------------------------------------------------
 # Backend
+# ------------------------------------------------------------
 
 $env:DATABASE_URL = "postgresql://postgres:sitansu123@127.0.0.1:5432/pharmaflow"
-# ------------------------------------------------------------
+
 Remove-Item Env:PORT -ErrorAction SilentlyContinue
+
+if (-not (Test-Path $BackendServer)) {
+    throw "Backend server not found: $BackendServer"
+}
+
 $backend = Start-Process `
     -FilePath $Node `
     -ArgumentList "`"$BackendServer`"" `
@@ -91,7 +109,10 @@ $backend = Start-Process `
     -WindowStyle Hidden `
     -PassThru
 
+# ------------------------------------------------------------
 # Wait for backend
+# ------------------------------------------------------------
+
 $backendReady = $false
 
 for ($i = 0; $i -lt 30; $i++) {
@@ -108,7 +129,8 @@ for ($i = 0; $i -lt 30; $i++) {
             break
         }
     }
-    catch {}
+    catch {
+    }
 }
 
 if (-not $backendReady) {
@@ -119,7 +141,14 @@ if (-not $backendReady) {
 # ------------------------------------------------------------
 # Frontend
 # ------------------------------------------------------------
+
+if (-not (Test-Path $WebServer)) {
+    Stop-Process -Id $backend.Id -Force -ErrorAction SilentlyContinue
+    throw "Frontend server not found: $WebServer"
+}
+
 $env:PORT = "3417"
+
 $web = Start-Process `
     -FilePath $Node `
     -ArgumentList "`"$WebServer`"" `
@@ -127,7 +156,10 @@ $web = Start-Process `
     -WindowStyle Hidden `
     -PassThru
 
+# ------------------------------------------------------------
 # Wait for frontend
+# ------------------------------------------------------------
+
 $frontendReady = $false
 
 for ($i = 0; $i -lt 60; $i++) {
@@ -146,7 +178,8 @@ for ($i = 0; $i -lt 60; $i++) {
             break
         }
     }
-    catch {}
+    catch {
+    }
 }
 
 if (-not $frontendReady) {
@@ -156,9 +189,8 @@ if (-not $frontendReady) {
 }
 
 # ------------------------------------------------------------
-# Open PharmaFlow
+# Success
 # ------------------------------------------------------------
-
 
 Write-Host "====================================="
 Write-Host " PharmaFlow started successfully"
@@ -166,5 +198,3 @@ Write-Host " Frontend : http://127.0.0.1:3417"
 Write-Host " Backend  : http://127.0.0.1:5001"
 Write-Host " Database : 127.0.0.1:5432"
 Write-Host "====================================="
-
-

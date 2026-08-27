@@ -27,3 +27,9 @@ web-deploy/node_modules/
 .DS_Store
 Thumbs.db
 .vscode/
+
+desktop/release/
+
+launcher/logs/
+
+apps/web.next-new/

@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
-import { BookOpen, Loader2, Plus } from "lucide-react";
+import { BookOpen, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import type { Supplier } from "@/types/supplier";
 
+import type { Supplier } from "@/types/supplier";
 import { useSupplierLedger } from "@/hooks/use-supplier-ledger";
 
 import { Button } from "@/components/ui/button";
@@ -37,24 +37,25 @@ export function SupplierLedgerDialog({
   );
 
   function formatCurrency(value: number) {
-    return `₹${value.toFixed(2)}`;
+    return `₹${Math.round(Number(value) || 0)}`;
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
-  render={
-    <Button
-      variant="outline"
-      size="sm"
-      className="gap-2"
-    />
-  }
->
-  <BookOpen className="h-4 w-4" />
-  Ledger
-</DialogTrigger>
-<DialogContent className="!w-[95vw] !max-w-[1200px]">
+        render={
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+          />
+        }
+      >
+        <BookOpen className="h-4 w-4" />
+        Ledger
+      </DialogTrigger>
+
+      <DialogContent className="!w-[95vw] !max-w-[1200px]">
         <DialogHeader>
           <DialogTitle>
             {supplier.name} — Supplier Ledger
@@ -118,6 +119,7 @@ export function SupplierLedgerDialog({
                 supplier={supplier}
                 onSuccess={() => {
                   refetch();
+
                   toast.success(
                     "Supplier payment recorded successfully"
                   );

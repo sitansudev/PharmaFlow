@@ -60,18 +60,22 @@ export class PurchaseService {
           const discountAmount =
             (item.rate * item.discount) / 100;
 
-          const netRate = Number(
-            (
-              item.rate - discountAmount
-            ).toFixed(2)
-          );
-
           const ccCharge =
             Number(item.ccCharge) || 0;
 
+          /*
+           * Purchase item calculation:
+           *
+           * quantity × rate
+           * - discount amount
+           * + CC charge
+           *
+           * CC charge is not discounted.
+           */
           const subtotal = Number(
             (
-              item.quantity * netRate +
+              item.quantity * item.rate -
+              item.quantity * discountAmount +
               ccCharge
             ).toFixed(2)
           );
@@ -183,15 +187,36 @@ export class PurchaseService {
           });
         }
 
+        /*
+         * Round the final purchase amount.
+         *
+         * Example:
+         * ₹1256.73 -> ₹1257
+         */
+        const roundedTotalAmount =
+          Math.round(
+            Number(totalAmount.toFixed(2))
+          );
+
+        /*
+         * Update the purchase using the rounded
+         * amount. Prisma will keep this as the
+         * correct Decimal type internally.
+         */
         await tx.purchase.update({
           where: {
             id: purchase.id,
           },
           data: {
-            totalAmount,
+            totalAmount:
+              roundedTotalAmount,
           },
         });
 
+        /*
+         * Supplier ledger uses the exact same
+         * rounded amount as the purchase.
+         */
         await tx.supplierLedgerEntry.create({
           data: {
             supplierId: supplier.id,
@@ -201,13 +226,32 @@ export class PurchaseService {
             invoiceNumber:
               purchase.invoiceNo,
             type: "PURCHASE",
-            debit: totalAmount,
+            debit:
+              roundedTotalAmount,
             credit: 0,
             referenceId: purchase.id,
           },
         });
 
-        return purchase;
+        /*
+         * Fetch the purchase again so Prisma returns
+         * the actual database Decimal type.
+         */
+        const updatedPurchase =
+          await tx.purchase.findUnique({
+            where: {
+              id: purchase.id,
+            },
+          });
+
+        if (!updatedPurchase) {
+          throw new AppError(
+            500,
+            "Failed to retrieve created purchase"
+          );
+        }
+
+        return updatedPurchase;
       }
     );
   }
@@ -282,12 +326,6 @@ export class PurchaseService {
           );
         }
 
-        /*
-         * --------------------------------------------------
-         * STEP 1
-         * Find all batches belonging to this purchase.
-         * --------------------------------------------------
-         */
         const batchIds = [
           ...new Set(
             purchase.items.map(
@@ -296,13 +334,6 @@ export class PurchaseService {
           ),
         ];
 
-        /*
-         * --------------------------------------------------
-         * STEP 2
-         * NEVER delete a purchase if any of its batches
-         * have already been used in a sale.
-         * --------------------------------------------------
-         */
         if (batchIds.length > 0) {
           const soldTransactions =
             await tx.inventoryTransaction.findFirst({
@@ -325,12 +356,6 @@ export class PurchaseService {
           }
         }
 
-        /*
-         * --------------------------------------------------
-         * STEP 3
-         * Load the actual batches.
-         * --------------------------------------------------
-         */
         const batches =
           batchIds.length > 0
             ? await tx.medicineBatch.findMany({
@@ -342,19 +367,6 @@ export class PurchaseService {
               })
             : [];
 
-        /*
-         * --------------------------------------------------
-         * STEP 4
-         * Reverse medicine-level stock.
-         *
-         * We use PurchaseItem quantities + bonus from the
-         * purchase batch. The purchase added:
-         *
-         * quantity + bonus
-         *
-         * units to stock.
-         * --------------------------------------------------
-         */
         const quantityByBatch =
           new Map<string, number>();
 
@@ -371,15 +383,6 @@ export class PurchaseService {
             );
           }
 
-          /*
-           * PurchaseItem.quantity is paid quantity.
-           * MedicineBatch.bonus represents the accumulated
-           * bonus for the batch.
-           *
-           * Because the batch can contain stock from more
-           * than one purchase, we must not blindly subtract
-           * the entire batch quantity.
-           */
           const purchaseTransaction =
             await tx.inventoryTransaction.findFirst({
               where: {
@@ -408,12 +411,6 @@ export class PurchaseService {
           );
         }
 
-        /*
-         * --------------------------------------------------
-         * STEP 5
-         * Reverse medicine stock.
-         * --------------------------------------------------
-         */
         const medicineRollback =
           new Map<string, number>();
 
@@ -480,12 +477,6 @@ export class PurchaseService {
           });
         }
 
-        /*
-         * --------------------------------------------------
-         * STEP 6
-         * Reverse each batch.
-         * --------------------------------------------------
-         */
         for (const [
           batchId,
           quantity,
@@ -513,13 +504,6 @@ export class PurchaseService {
             );
           }
 
-          /*
-           * If this batch came exclusively from this
-           * purchase, deactivate it after rollback.
-           *
-           * If the same batch was received through another
-           * purchase, keep the batch alive.
-           */
           const otherPurchaseItems =
             await tx.purchaseItem.count({
               where: {
@@ -549,13 +533,6 @@ export class PurchaseService {
           });
         }
 
-        /*
-         * --------------------------------------------------
-         * STEP 7
-         * Remove inventory transactions belonging to
-         * this purchase.
-         * --------------------------------------------------
-         */
         await tx.inventoryTransaction.deleteMany({
           where: {
             referenceId: purchase.id,
@@ -563,13 +540,6 @@ export class PurchaseService {
           },
         });
 
-        /*
-         * --------------------------------------------------
-         * STEP 8
-         * Remove supplier ledger entry created by this
-         * purchase.
-         * --------------------------------------------------
-         */
         await tx.supplierLedgerEntry.deleteMany({
           where: {
             referenceId: purchase.id,
@@ -577,24 +547,12 @@ export class PurchaseService {
           },
         });
 
-        /*
-         * --------------------------------------------------
-         * STEP 9
-         * Delete purchase items.
-         * --------------------------------------------------
-         */
         await tx.purchaseItem.deleteMany({
           where: {
             purchaseId: purchase.id,
           },
         });
 
-        /*
-         * --------------------------------------------------
-         * STEP 10
-         * Delete the purchase itself.
-         * --------------------------------------------------
-         */
         await tx.purchase.delete({
           where: {
             id: purchase.id,

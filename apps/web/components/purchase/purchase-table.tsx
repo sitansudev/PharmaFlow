@@ -27,11 +27,15 @@ export function PurchaseTable({
   const deletePurchase =
     useDeletePurchase();
 
-  const [purchaseToDelete, setPurchaseToDelete] =
-    useState<Purchase | null>(null);
+  const [
+    purchaseToDelete,
+    setPurchaseToDelete,
+  ] = useState<Purchase | null>(null);
 
-  const [errorMessage, setErrorMessage] =
-    useState<string | null>(null);
+  const [
+    errorMessage,
+    setErrorMessage,
+  ] = useState<string | null>(null);
 
   if (purchases.length === 0) {
     return (
@@ -102,49 +106,55 @@ export function PurchaseTable({
           </TableHeader>
 
           <TableBody>
-            {purchases.map((purchase) => (
-              <TableRow key={purchase.id}>
-                <TableCell className="font-semibold">
-                  {purchase.invoiceNo}
-                </TableCell>
+            {purchases.map(
+              (purchase) => (
+                <TableRow
+                  key={purchase.id}
+                >
+                  <TableCell className="font-semibold">
+                    {purchase.invoiceNo}
+                  </TableCell>
 
-                <TableCell>
-                  {purchase.supplier.name}
-                </TableCell>
+                  <TableCell>
+                    {purchase.supplier.name}
+                  </TableCell>
 
-                <TableCell>
-                  {new Date(
-                    purchase.purchaseDate
-                  ).toLocaleDateString()}
-                </TableCell>
+                  <TableCell>
+                    {new Date(
+                      purchase.purchaseDate
+                    ).toLocaleDateString()}
+                  </TableCell>
 
-                <TableCell>
-                  {purchase.items.length}
-                </TableCell>
+                  <TableCell>
+                    {purchase.items.length}
+                  </TableCell>
 
-                <TableCell className="text-right font-semibold">
-                  ₹
-                  {Number(
-                    purchase.totalAmount
-                  ).toFixed(2)}
-                </TableCell>
+                  <TableCell className="text-right font-semibold">
+                    ₹
+                    {Math.round(
+                      Number(
+                        purchase.totalAmount
+                      ) || 0
+                    )}
+                  </TableCell>
 
-                <TableCell className="text-right">
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    onClick={() =>
-                      setPurchaseToDelete(
-                        purchase
-                      )
-                    }
-                  >
-                    Delete
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
+                  <TableCell className="text-right">
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="sm"
+                      onClick={() =>
+                        setPurchaseToDelete(
+                          purchase
+                        )
+                      }
+                    >
+                      Delete
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              )
+            )}
           </TableBody>
         </Table>
       </div>
@@ -159,7 +169,9 @@ export function PurchaseTable({
             <p className="mt-2 text-sm text-muted-foreground">
               You are about to delete purchase invoice{" "}
               <span className="font-semibold text-foreground">
-                {purchaseToDelete.invoiceNo}
+                {
+                  purchaseToDelete.invoiceNo
+                }
               </span>
               .
             </p>
@@ -185,7 +197,9 @@ export function PurchaseTable({
                   deletePurchase.isPending
                 }
                 onClick={() => {
-                  setPurchaseToDelete(null);
+                  setPurchaseToDelete(
+                    null
+                  );
                   setErrorMessage(null);
                 }}
               >

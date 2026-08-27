@@ -12,12 +12,19 @@ import type {
 } from "./supplier-ledger.validation.js";
 
 export class SupplierLedgerService {
-  async getLedger(supplierId: string) {
+  async getLedger(
+    supplierId: string
+  ) {
     const supplier =
-      await supplierRepository.findById(supplierId);
+      await supplierRepository.findById(
+        supplierId
+      );
 
     if (!supplier) {
-      throw new AppError(404, "Supplier not found");
+      throw new AppError(
+        404,
+        "Supplier not found"
+      );
     }
 
     const entries =
@@ -27,39 +34,64 @@ export class SupplierLedgerService {
 
     let balance = 0;
 
-    const ledger = entries.map((entry) => {
-      balance +=
-        Number(entry.debit) -
-        Number(entry.credit);
+    const ledger = entries.map(
+      (entry) => {
+        const debit = Math.round(
+          Number(entry.debit) || 0
+        );
 
-      return {
-        id: entry.id,
-        date: entry.date,
-        uniqueNumber: entry.uniqueNumber,
-        invoiceNumber: entry.invoiceNumber,
-        type: entry.type,
-        debit: Number(entry.debit),
-        credit: Number(entry.credit),
-        balance,
-        paymentMethod: entry.paymentMethod,
-        referenceId: entry.referenceId,
-        notes: entry.notes,
-      };
-    });
+        const credit = Math.round(
+          Number(entry.credit) || 0
+        );
+
+        balance = Math.round(
+          balance + debit - credit
+        );
+
+        return {
+          id: entry.id,
+          date: entry.date,
+          uniqueNumber:
+            entry.uniqueNumber,
+          invoiceNumber:
+            entry.invoiceNumber,
+          type: entry.type,
+          debit,
+          credit,
+          balance,
+          paymentMethod:
+            entry.paymentMethod,
+          referenceId:
+            entry.referenceId,
+          notes: entry.notes,
+        };
+      }
+    );
 
     const totals =
       await supplierLedgerRepository.getTotals(
         supplierId
       );
 
+    const totalDebit = Math.round(
+      Number(totals.debit) || 0
+    );
+
+    const totalCredit = Math.round(
+      Number(totals.credit) || 0
+    );
+
     return {
       supplier,
+
       entries: ledger,
+
       totals: {
-        debit: totals.debit,
-        credit: totals.credit,
-        balance:
-          totals.debit - totals.credit,
+        debit: totalDebit,
+        credit: totalCredit,
+        balance: Math.round(
+          totalDebit - totalCredit
+        ),
       },
     };
   }
@@ -69,10 +101,15 @@ export class SupplierLedgerService {
     data: SupplierPaymentDTO
   ) {
     const supplier =
-      await supplierRepository.findById(supplierId);
+      await supplierRepository.findById(
+        supplierId
+      );
 
     if (!supplier) {
-      throw new AppError(404, "Supplier not found");
+      throw new AppError(
+        404,
+        "Supplier not found"
+      );
     }
 
     const totals =
@@ -81,14 +118,19 @@ export class SupplierLedgerService {
       );
 
     const currentBalance =
-      totals.debit - totals.credit;
+      Math.round(
+        (Number(totals.debit) || 0) -
+        (Number(totals.credit) || 0)
+      );
 
-    if (data.amount > currentBalance) {
+    const paymentAmount = Math.round(
+      Number(data.amount) || 0
+    );
+
+    if (paymentAmount > currentBalance) {
       throw new AppError(
         400,
-        `Payment cannot be greater than outstanding balance of ₹${currentBalance.toFixed(
-          2
-        )}`
+        `Payment cannot be greater than outstanding balance of ₹${currentBalance}`
       );
     }
 
@@ -99,7 +141,8 @@ export class SupplierLedgerService {
         },
       },
 
-      date: data.date ?? new Date(),
+      date:
+        data.date ?? new Date(),
 
       uniqueNumber:
         data.uniqueNumber?.trim() || null,
@@ -111,12 +154,13 @@ export class SupplierLedgerService {
 
       debit: 0,
 
-      credit: data.amount,
+      credit: paymentAmount,
 
       paymentMethod:
         data.paymentMethod as PaymentMethod,
 
-      notes: data.notes?.trim() || null,
+      notes:
+        data.notes?.trim() || null,
     });
   }
 }

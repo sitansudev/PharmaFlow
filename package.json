@@ -9,6 +9,7 @@
     "check-types": "turbo check-types"
   },
   "devDependencies": {
+    "@tauri-apps/cli": "^2.11.4",
     "turbo": "^2.10.5"
   }
 }
