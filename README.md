@@ -1,159 +1,93 @@
-# Turborepo starter
+# PharmaFlow
 
-This Turborepo starter is maintained by the Turborepo core team.
+> Pharmacy Management System for real-world pharmacy operations.
 
-## Using this example
+PharmaFlow is a full-stack pharmacy management system designed to simplify
+day-to-day pharmacy operations through a modern web application and Windows
+desktop application.
 
-Run the following command:
+## Features
 
-```sh
-npx create-turbo@latest
-```
+- Medicine and inventory management
+- Sales management
+- Purchase management
+- Supplier management
+- Supplier ledger and payment tracking
+- Customer management
+- Dashboard and business insights
+- Authentication and authorization
+- PostgreSQL database with Prisma ORM
+- Windows desktop application powered by Electron
+- Automated backend testing
+- GitHub Actions continuous integration
 
-## What's inside?
+## Tech Stack
 
-This Turborepo includes the following packages/apps:
+### Frontend
 
-### Apps and Packages
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+- TanStack React Query
+- React Hook Form
+- Axios
+- Zod
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+### Backend
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+- Node.js
+- Express 5
+- TypeScript
+- Prisma ORM
+- PostgreSQL
+- JWT
+- bcrypt
+- Zod
+- Helmet
+- Express Rate Limit
+- Winston
+- Swagger
 
-### Utilities
+### Desktop
 
-This Turborepo has some additional tools already setup for you:
+- Electron
+- electron-builder
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+### Tooling
 
-### Build
+- pnpm
+- Turborepo
+- Vitest
+- ESLint
+- Prettier
+- GitHub Actions
 
-To build all apps and packages, run the following command:
+## Architecture
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+PharmaFlow is organized as a pnpm workspace managed with Turborepo.
 
-```sh
-cd my-turborepo
-turbo build
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo build
-pnpm dlx turbo build
-pnpm exec turbo build
-```
-
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo build --filter=docs
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo dev
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
-```
-
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo dev --filter=web
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+```text
+PharmaFlow/
+├── apps/
+│   ├── backend/          # Express API and Prisma database
+│   │   ├── prisma/       # Prisma schema and migrations
+│   │   └── src/          # Backend source code
+│   │
+│   ├── web/              # Next.js web application
+│   ├── desktop/          # Desktop application workspace
+│   ├── docs/             # Documentation application
+│   └── app/              # Application workspace
+│
+├── packages/             # Shared workspace packages
+├── desktop/              # Electron desktop entry point
+├── tools/                # Development utilities
+├── launcher/             # Local development launcher
+├── .github/
+│   └── workflows/        # GitHub Actions workflows
+│
+├── package.json
+├── pnpm-workspace.yaml
+├── turbo.json
+└── README.md
