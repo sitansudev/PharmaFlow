@@ -3,9 +3,9 @@
 import { useParams } from "next/navigation";
 import { useSale } from "@/hooks/use-sale";
 
-const PHARMACY_NAME = "CHAUDHARY MEDICAL HALL";
-const PHARMACY_ADDRESS = "Karsiya Bazzar";
-const PAN_NUMBER = "300953277";
+const PHARMACY_NAME = "PHARMACY_NAME";
+const PHARMACY_ADDRESS = "PHARMACY_ADDRESS";
+const PAN_NUMBER = "PAN_NUMBER";
 
 export default function SaleBillPage() {
   const params = useParams<{ id: string }>();
