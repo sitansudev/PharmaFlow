@@ -1,7 +1,8 @@
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, dialog } = require("electron");
 const { spawn } = require("child_process");
 const http = require("http");
 const path = require("path");
+const { prepareDatabase, stopDatabase } = require("./database");
 
 const HOST = "127.0.0.1";
 const BACKEND_PORT = 5001;
@@ -22,14 +23,16 @@ const FRONTEND_DIR = path.join(
 let backendProcess = null;
 let frontendProcess = null;
 let mainWindow = null;
+let database = null;
 
-function startServer(script, cwd, port) {
+function startServer(script, cwd, port, additionalEnvironment = {}) {
   const env = {
     ...process.env,
     ELECTRON_RUN_AS_NODE: "1",
     NODE_ENV: "production",
     PORT: String(port),
     HOSTNAME: HOST,
+    ...additionalEnvironment,
   };
 
   return spawn(process.execPath, [script], {
@@ -61,7 +64,8 @@ function startBackend() {
   backendProcess = startServer(
     "dist/server.js",
     BACKEND_DIR,
-    BACKEND_PORT
+    BACKEND_PORT,
+    { DATABASE_URL: database.databaseUrl, JWT_SECRET: database.jwtSecret, FRONTEND_URL: `http://${HOST}:${FRONTEND_PORT}` }
   );
 
   monitorProcess("Backend", backendProcess);
@@ -124,6 +128,7 @@ function stopProcess(child) {
 }
 
 async function createWindow() {
+  database = prepareDatabase({ userDataDirectory: app.getPath("userData"), runtimeDirectory: RUNTIME_DIR });
   startBackend();
 
   await waitForHttp(
@@ -163,9 +168,11 @@ app.whenReady().then(async () => {
     await createWindow();
   } catch (error) {
     console.error("Failed to launch PharmaFlow:", error);
+    dialog.showErrorBox("PharmaFlow could not start", error instanceof Error ? error.message : "An unexpected startup error occurred.");
 
     stopProcess(frontendProcess);
     stopProcess(backendProcess);
+    stopDatabase(database);
 
     app.quit();
   }
@@ -174,9 +181,11 @@ app.whenReady().then(async () => {
 app.on("before-quit", () => {
   stopProcess(frontendProcess);
   stopProcess(backendProcess);
+  stopDatabase(database);
 
   frontendProcess = null;
   backendProcess = null;
+  database = null;
 });
 
 app.on("window-all-closed", () => {

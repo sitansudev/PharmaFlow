@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const medicineQuerySchema = z.object({
   page: z.coerce.number().int().positive().optional(),
-  limit: z.coerce.number().int().min(1).max(100).optional(),
+  limit: z.coerce.number().int().min(1).max(2000).optional(),
 
   search: z.string().trim().optional(),
 

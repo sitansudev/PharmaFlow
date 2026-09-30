@@ -85,7 +85,7 @@ export function SaleForm({
   const {
     data: medicinesResponse,
     isLoading,
-  } = useMedicines(100);
+  } = useMedicines(2000);
 
   const medicines =
     medicinesResponse?.data ?? [];

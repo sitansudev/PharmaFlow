@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { medicineService } from "@/services/medicine.service";
 
 export function useMedicines(
-  limit = 10,
+  limit = 2000,
   search = "",
   page = 1
 ) {
