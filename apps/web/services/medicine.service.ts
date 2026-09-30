@@ -9,7 +9,7 @@ import type {
 
 export const medicineService = {
   async getAll(
-    limit = 10,
+    limit = 2000,
     search = "",
     page = 1
   ) {

@@ -16,7 +16,7 @@ export default function MedicinesPage() {
     data,
     isLoading,
     isError,
-  } = useMedicines(100, search);
+  } = useMedicines(2000, search);
   if (isLoading && !data) {
   return <div className="p-8">Loading...</div>;
 }

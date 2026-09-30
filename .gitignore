@@ -29,6 +29,7 @@ Thumbs.db
 .vscode/
 
 desktop/release/
+desktop/vendor/pgsql/
 
 launcher/logs/
 

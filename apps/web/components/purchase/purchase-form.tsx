@@ -135,7 +135,7 @@ export function PurchaseForm({
     useSuppliers();
 
   const { data: medicines } =
-    useMedicines();
+    useMedicines(2000);
 
   const { data: categories } =
     useCategories();

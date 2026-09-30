@@ -6,7 +6,9 @@
     "dev": "turbo dev",
     "build": "turbo build",
     "lint": "turbo lint",
-    "check-types": "turbo check-types"
+    "check-types": "turbo check-types",
+    "prepare:desktop-runtime": "pnpm --dir desktop run prepare-runtime",
+    "dist:windows": "pnpm run prepare:desktop-runtime && pnpm --dir desktop run dist"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.11.4",

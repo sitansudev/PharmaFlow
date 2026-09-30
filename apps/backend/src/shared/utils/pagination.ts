@@ -12,7 +12,7 @@ export interface PaginationResult {
 
 export function getPagination(query: PaginationQuery): PaginationResult {
   const page = Math.max(Number(query.page) || 1, 1);
-  const limit = Math.min(Math.max(Number(query.limit) || 10, 1), 100);
+  const limit = Math.min(Math.max(Number(query.limit) || 2000, 1), 2000);
 
   return {
     page,
